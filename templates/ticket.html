@@ -1,0 +1,12 @@
+
+{% extends "base.html" %}
+{% block content %}
+  <div class="card ticket">
+    <h2 class="h4">예약 완료</h2>
+    <p><b>예약자</b> {{ r["student_id"] }} {{ r["student_name"] }}</p>
+    <p><b>영화제목</b> {{ r["title"] }}</p>
+    <p><b>상영일</b> {{ r["show_date"] }}</p>
+    <p class="code"><b>예약번호</b> {{ r["ticket_code"] }}</p>
+    <p class="hint">이 화면을 캡처하여 입장 시 제시하세요.</p>
+  </div>
+{% endblock %}
