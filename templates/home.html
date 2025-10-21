@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+{% set first = movies[0] if movies else None %}
+
+<section class="stack mt-24">
+  <div class="h-eyebrow">현재 상영중</div>
+  <h1 class="h-title-xxl">{{ first.title if first else "남녕시네마" }}</h1>
+
+  {% if first %}
+    <div class="poster-frame"><img class="poster" src="{{ first.poster or '/static/images/posters/default.jpg' }}" alt=""></div>
+    <a class="btn btn-primary btn-block mt-24" href="{{ url_for('booking_mode', movieId=first.id) }}">예약하러 가기</a>
+  {% endif %}
+
+  <p class="text-muted">남녕인만의 특별한 라이프스타일_<br>남녕시네마_</p>
+</section>
+{% endblock %}

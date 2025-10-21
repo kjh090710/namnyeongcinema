@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="stack mt-24">
+  <p class="h-eyebrow">예약진행</p>
+  <h1 class="h-title-xxl">F1: 더무비</h1>
+
+  <a class="booking-btn booking-normal"
+     href="{{ url_for('reserve', rtype='normal', movieId=request.args.get('movieId','')) }}">일반예약</a>
+
+  <a class="booking-btn booking-gray"
+     href="{{ url_for('reserve', rtype='group', movieId=request.args.get('movieId','')) }}">단체예약</a>
+
+  <a class="booking-btn booking-gray"
+     href="{{ url_for('reserve', rtype='teacher', movieId=request.args.get('movieId','')) }}">
+     교사예약 <span class="ribbon">PRIME</span>
+  </a>
+
+  <p class="text-muted mt-24">관련 규정이 궁금한가요? <b style="color:var(--brand)">규정확인</b></p>
+</section>
+{% endblock %}

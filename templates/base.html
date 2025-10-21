@@ -1,28 +1,52 @@
-
 <!doctype html>
 <html lang="ko">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>남녕시네마</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>{% block title %}남녕시네마{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='nyca.css') }}">
 </head>
 <body>
-  <header class="site-header">
-    <div class="container header-inner">
-      <a class="brand" href="{{ url_for('index') }}">🎬 남녕시네마</a>
-      <nav class="nav">
-        <a href="{{ url_for('admin_login') }}">관리자</a>
-      </nav>
-    </div>
-  </header>
+  <header class="nyca-header container">
+  <a class="nyca-brand brand" href="{{ url_for('index') }}">
+    <img
+      src="{{ url_for('static', filename='images/logo.png') }}"
+      alt="NYCA 로고"
+      class="brand-mark"
+      loading="eager"
+      decoding="async"
+    />
+  </a>
+  <!-- 버튼: aria 속성 추가 -->
+  <button class="nyca-menu-btn" aria-label="메뉴" aria-expanded="false" aria-controls="nycaMenu" type="button">
+    <span></span><span></span><span></span>
+  </button>
+</header>
 
-  <main class="container page">
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        <div class="flash-wrap">
-          {% for cat, msg in messages %}
-            <div class="flash {{ cat }}">{{ msg }}</div>
+<!-- ▼ 추가: 메뉴와 오버레이 -->
+<nav id="nycaMenu" class="nyca-menu" hidden>
+  <ul class="nyca-menu-list">
+    <li><a href="{{ url_for('index') }}">홈</a></li>
+    <li><a href="{{ url_for('booking_mode') }}">예매하기</a></li>
+    <li><a href="{{ url_for('tickets') }}">내 티켓</a></li>
+    <li><a href="{{ url_for('notices') }}">공지</a></li>
+    <li><a href="{{ url_for('admin_dashboard') }}">관리자</a></li>
+    {% if session.get('is_admin') %}
+     <li><hr style="border:none;height:1px;background:#e5e7eb;margin:6px 0"></li>
+     <li><a href="{{ url_for('admin_dashboard') }}">관리자 대시보드</a></li>
+     <li><a href="{{ url_for('admin_movies') }}">영화 관리</a></li>
+     <li><a href="{{ url_for('admin_schedule') }}">스케줄 관리</a></li>
+    {% endif %}
+  </ul>
+</nav>
+<div class="nyca-overlay" hidden></div>
+
+  <main class="container">
+    {% with msgs = get_flashed_messages(with_categories=true) %}
+      {% if msgs %}
+        <div class="stack mt-16">
+          {% for cat, msg in msgs %}
+            <div class="card{% if cat=='error' %} flash-error{% endif %}">{{ msg }}</div>
           {% endfor %}
         </div>
       {% endif %}
@@ -30,11 +54,6 @@
 
     {% block content %}{% endblock %}
   </main>
-
-  <footer class="site-footer">
-    <div class="container">
-      <small>© 남녕고등학교 학생자치회</small>
-    </div>
-  </footer>
+  <script src="{{ url_for('static', filename='app.js') }}" defer></script>
 </body>
 </html>

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+<section>
+  <img class="ticket-poster"
+       src="{{ (get_movie(t['movie_id']) or {}).get('poster','/static/images/posters/default.jpg') }}"
+       alt="">
+</section>
+
+<section class="ticket-card">
+  <div class="ticket-title">
+    <h1>{{ t['movie_title'] }}</h1>
+  </div>
+
+  <p class="mt-12">화면을 캡쳐하여 상영관 입장시 보여주세요.</p>
+
+  <div class="ticket-meta">
+    <div><span class="k">예약자</span> {{ t['student_id'] }} {{ t['student_name'] }}</div>
+    <div><span class="k">상영날짜</span> {{ t['date'] }}</div>
+    <div><span class="k">예약번호</span> {{ t['id'] }}</div>
+    <div><span class="k">상영시간</span> {{ t['time'] }}</div>
+    <div style="grid-column:1/-1"><span class="k">티켓유형</span> {{ t['type']|badge_status }}({{ t['type'] }})</div>
+  </div>
+
+  <div class="actions mt-16">
+    <a class="btn btn-soft">예약 취소</a>
+    <a class="btn btn-soft">영화 정보</a>
+    <a class="btn btn-soft">상영관 규칙</a>
+    <a class="btn btn-primary btn-block">🏠 홈으로 돌아가기</a>
+  </div>
+</section>
+{% endblock %}

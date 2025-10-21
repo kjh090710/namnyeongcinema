@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}공지사항{% endblock %}
+{% block content %}
+<div class="card">
+  <h2 style="margin:0 0 12px">공지</h2>
+  <ul>
+    {% for n in notices %}<li>{{ n }}</li>{% endfor %}
+  </ul>
+</div>
+{% endblock %}

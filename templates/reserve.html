@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="stack mt-24 mb-40">
+
+  <div class="stack mb-24">
+    <p class="h-eyebrow">🎬 예약 진행</p>
+    <h1 class="h-title-xxl">{{ movie.title if movie else "남녕시네마" }}</h1>
+    <p class="text-muted">
+      예약을 진행하기 위해 필요한 정보를 입력하세요.<br>
+      {% if rtype == 'teacher' %}
+        교사용 티켓은 인증 후 이용 가능합니다.
+      {% elif rtype == 'group' %}
+        단체 예약은 5인 이상만 가능합니다.
+      {% endif %}
+    </p>
+  </div>
+
+  <form method="post" class="card stack" style="gap:20px;">
+
+    <!-- 날짜 선택 -->
+    <div class="stack">
+      <label for="date" class="k" style="font-weight:700;">상영 날짜</label>
+      <select name="date" id="date" class="input">
+        {% for s in schedule %}
+          <option value="{{ s['date'] }}">{{ s['date'] }} ({{ s['time'] }}, {{ s['hall'] }})</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <!-- 영화/상영관 자동표시 -->
+    <div class="stack">
+      <label for="movie" class="k" style="font-weight:700;">영화 선택</label>
+      <select name="movie_id" id="movie" class="input">
+        {% for m in movies %}
+          <option value="{{ m['id'] }}" {% if m['id'] == movie.id %}selected{% endif %}>
+            {{ m['title'] }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    {% if rtype == 'group' %}
+      <div class="stack">
+        <label class="k" style="font-weight:700;">단체명</label>
+        <input class="input" name="group_name" placeholder="예: 합창부 / 축구부">
+      </div>
+      <div class="stack">
+        <label class="k" style="font-weight:700;">인원수</label>
+        <input class="input" name="group_size" type="number" placeholder="5명 이상">
+      </div>
+    {% elif rtype == 'teacher' %}
+      <div class="stack">
+        <label class="k" style="font-weight:700;">담당 교사 성함</label>
+        <input class="input" name="teacher_name" placeholder="예: 홍길동">
+      </div>
+      <div class="stack">
+        <label class="k" style="font-weight:700;">담당 교과 / 반</label>
+        <input class="input" name="class_info" placeholder="예: 과학, 1-2반">
+      </div>
+    {% endif %}
+
+    <div class="stack">
+      <label class="k" style="font-weight:700;">학번</label>
+      <input class="input" name="student_id" placeholder="예: 10202 (1학년 2반 2번)">
+    </div>
+    <div class="stack">
+      <label class="k" style="font-weight:700;">이름</label>
+      <input class="input" name="student_name" placeholder="예: 강준환">
+    </div>
+
+    <button type="submit" class="btn btn-primary btn-block mt-16">
+      예약 완료하기
+    </button>
+  </form>
+
+</section>
+{% endblock %}

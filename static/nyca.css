@@ -1,0 +1,171 @@
+/* ===== Nyca Design System (Unified) ===== */
+:root{
+  --ink:#0f1220; --ink-2:#2a2e43; --muted:#9198a6;
+  --bg:#f3f4f6; --surface:#ffffff; --border:#e5e7eb;
+  --brand:#2b2e3e; --accent:#1e4db7;
+  --radius-lg:24px; --radius:16px; --radius-sm:10px;
+  --shadow:0 6px 20px rgba(0,0,0,.08);
+}
+
+html,body{background:var(--bg);color:var(--ink);font-family:"Pretendard","Noto Sans KR",system-ui}
+*{box-sizing:border-box}
+a{color:inherit;text-decoration:none}
+img{max-width:100%;height:auto;display:block}
+
+/* Layout */
+.container{width:100%;max-width:1200px;margin:0 auto;padding:0 20px}
+.stack{display:flex;flex-direction:column;gap:16px}
+.center{display:flex;justify-content:center;align-items:center}
+.mt-8{margin-top:8px}.mt-12{margin-top:12px}.mt-16{margin-top:16px}.mt-24{margin-top:24px}.mt-32{margin-top:32px}.mt-40{margin-top:40px}.mt-48{margin-top:48px}
+.mb-16{margin-bottom:16px}.mb-24{margin-bottom:24px}.mb-32{margin-bottom:32px}
+
+/* Header */
+.nyca-header{display:flex;align-items:center;justify-content:space-between;padding:22px 20px}
+.nyca-brand{display:flex;gap:12px;align-items:center;font-weight:800;font-size:28px}
+.nyca-brand img{height:34px;width:auto}
+.nyca-menu-btn{width:36px;height:24px;display:inline-flex;flex-direction:column;justify-content:space-between}
+.nyca-menu-btn span{height:3px;background:#2e2f3e;border-radius:3px}
+
+/* Typography */
+.h-eyebrow{font-weight:900;color:#b7bcc6;font-size:34px}
+.h-title-xxl{font-weight:900;color:#2f3141;font-size:56px;line-height:1.02}
+.h-title-xl{font-weight:900;color:#2f3141;font-size:72px;line-height:1.02}
+.text-muted{color:#9aa3b1}
+.k{color:#616776}
+
+/* Card */
+.card{background:var(--surface);border-radius:var(--radius-lg);box-shadow:var(--shadow);padding:32px}
+.card-soft{background:#f8f9fb;border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px}
+
+/* Inputs */
+.input{width:100%;padding:14px 12px;border:2px solid var(--border);border-radius:var(--radius-sm);font-size:16px;background:#fff}
+.input:focus{outline:none;border-color:var(--accent)}
+.input-underline{border:none;border-bottom:2px solid var(--border);border-radius:0;background:transparent;padding-left:0}
+.checkbox{display:flex;gap:10px;align-items:center;color:#7d8796}
+
+/* Buttons */
+.btn{display:inline-flex;justify-content:center;align-items:center;gap:8px;
+     padding:14px 16px;border-radius:var(--radius);font-weight:800;border:1px solid transparent;cursor:pointer}
+.btn-primary{background:var(--brand);color:#fff}
+.btn-soft{background:#eef0f4}
+.btn-block{width:100%}
+
+/* Poster & Media */
+.poster{width:100%;height:auto;aspect-ratio:2/3;object-fit:cover;object-position:center;border-radius:12px}
+.poster-frame{border:6px solid #cfd2d7;border-radius:12px;overflow:hidden}
+.ticket-poster{width:100%;max-height:470px;object-fit:cover}
+
+/* Booking buttons */
+.booking-btn{display:block;width:100%;padding:18px;border-radius:12px;text-align:center;font-weight:900;margin:18px 0}
+.booking-normal{background:var(--brand);color:#fff}
+.booking-gray{background:#d2d3d7;color:#fff;position:relative}
+.ribbon{position:absolute;right:-10px;top:-12px;background:#e11d48;color:#fff;padding:4px 10px;border-radius:6px;transform:rotate(20deg);font-size:12px}
+
+/* Ticket detail */
+.ticket-card{background:var(--surface);margin-top:-34px;border-radius:28px 28px 0 0;padding:22px 20px 28px;position:relative;z-index:1;box-shadow:0 -2px 0 rgba(0,0,0,.03), 0 10px 30px rgba(0,0,0,.08)}
+.ticket-title{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.ticket-title h1{font-size:64px;line-height:1.02;margin:14px 0 0;font-weight:900;color:#2f3141}
+.ticket-meta{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px;margin:18px 0 8px}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.actions .btn-dark{background:var(--brand);color:#fff;border-radius:14px;padding:18px 12px;text-align:center;font-weight:900;margin-top:14px;grid-column:1 / -1}
+
+/* Responsive */
+@media (min-width:900px){
+  .h-title-xxl{font-size:72px}
+}
+
+.text-muted.ok{color:#1e4db7}
+.text-muted.danger{color:#dc2626}
+.text-muted.muted2{color:#6b7280}
+
+/* ====== Nav sheet & overlay (animated) ====== */
+.nyca-menu{
+  position: fixed; top: 64px; right: 16px; left: 16px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); box-shadow: var(--shadow);
+  z-index: 30; overflow: hidden;
+
+  /* 초기 상태 (닫힘) */
+  transform: translateY(-8px) scale(.98);
+  opacity: 0; pointer-events: none;
+  transition: transform .24s cubic-bezier(.22,.61,.36,1), opacity .24s ease;
+}
+.nyca-menu.is-open{
+  transform: translateY(0) scale(1);
+  opacity: 1; pointer-events: auto;
+}
+.nyca-menu-list{ list-style:none; margin:0; padding:10px }
+.nyca-menu-list li{ margin: 0; }
+.nyca-menu-list a{
+  display:block; padding:14px 16px; border-radius: 12px;
+  font-weight:800; color: var(--ink);
+}
+.nyca-menu-list a:hover{
+  background: #eef1f6;
+}
+
+.nyca-overlay{
+  position: fixed; inset: 0; background: rgba(15,18,32,.32);
+  backdrop-filter: blur(2px);
+  z-index: 20; opacity: 0; pointer-events: none;
+  transition: opacity .24s ease;
+}
+.nyca-overlay.is-open{
+  opacity: 1; pointer-events: auto;
+}
+
+/* 햄버거 → X 애니메이션 */
+.nyca-menu-btn{position:relative}
+.nyca-menu-btn span{transition: transform .24s ease, opacity .2s ease}
+.nyca-menu-btn.is-open span:nth-child(1){transform: translateY(10px) rotate(45deg)}
+.nyca-menu-btn.is-open span:nth-child(2){opacity:0}
+.nyca-menu-btn.is-open span:nth-child(3){transform: translateY(-10px) rotate(-45deg)}
+
+/* 접근성: 애니메이션 최소화 선호 */
+@media (prefers-reduced-motion: reduce){
+  .nyca-menu, .nyca-overlay, .nyca-menu-btn span{transition: none}
+}
+
+/* Select box style */
+select.input {
+  appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' stroke='%239198a6' stroke-width='2' viewBox='0 0 24 24'%3E<path d='M6 9l6 6 6-6'/></svg>");
+  background-repeat:no-repeat;
+  background-position:right 12px center;
+  background-size:16px;
+  cursor:pointer;
+}
+
+/* ==== Brand (logo + text) ==== */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
+.brand-mark {
+  height: 80px;                /* ⬅️ 기존 40px → 80px로 2배 확대 */
+  width: auto;
+  object-fit: contain;
+  display: block;
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+.brand-text {
+  font-weight: 800;
+  font-size: 1.8rem;           /* 텍스트도 살짝 키움 (기존 1.25rem → 1.8rem) */
+  line-height: 1;
+  color: var(--brand);
+  letter-spacing: 0.2px;
+}
+.brand:hover .brand-mark {
+  transform: scale(1.05);
+  opacity: 0.92;
+}
+@media (max-width: 480px) {
+  .brand-mark {
+    height: 60px;              /* 모바일에서는 너무 크지 않게 */
+  }
+  .brand-text {
+    font-size: 1.3rem;
+  }
+}
