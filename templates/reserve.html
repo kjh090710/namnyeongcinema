@@ -1,77 +1,118 @@
 {% extends "base.html" %}
+{% block title %}예약 진행 · 남녕시네마{% endblock %}
+
 {% block content %}
-<section class="stack mt-24 mb-40">
+{% set is_normal  = (rtype == 'normal') %}
+{% set is_group   = (rtype == 'group') %}
+{% set is_teacher = (rtype == 'teacher') %}
 
-  <div class="stack mb-24">
-    <p class="h-eyebrow">🎬 예약 진행</p>
-    <h1 class="h-title-xxl">{{ movie.title if movie else "남녕시네마" }}</h1>
-    <p class="text-muted">
-      예약을 진행하기 위해 필요한 정보를 입력하세요.<br>
-      {% if rtype == 'teacher' %}
-        교사용 티켓은 인증 후 이용 가능합니다.
-      {% elif rtype == 'group' %}
-        단체 예약은 5인 이상만 가능합니다.
-      {% endif %}
-    </p>
-  </div>
+<section class="stack mb-24">
+  <h1 class="h-title-xxl">예약진행</h1>
+  <p class="text-muted">상영 날짜와 영화를 선택한 뒤 필요한 정보를 입력해 주세요.</p>
+</section>
 
-  <form method="post" class="card stack" style="gap:20px;">
-
-    <!-- 날짜 선택 -->
-    <div class="stack">
-      <label for="date" class="k" style="font-weight:700;">상영 날짜</label>
-      <select name="date" id="date" class="input">
-        {% for s in schedule %}
-          <option value="{{ s['date'] }}">{{ s['date'] }} ({{ s['time'] }}, {{ s['hall'] }})</option>
-        {% endfor %}
-      </select>
-    </div>
-
-    <!-- 영화/상영관 자동표시 -->
-    <div class="stack">
-      <label for="movie" class="k" style="font-weight:700;">영화 선택</label>
-      <select name="movie_id" id="movie" class="input">
-        {% for m in movies %}
-          <option value="{{ m['id'] }}" {% if m['id'] == movie.id %}selected{% endif %}>
-            {{ m['title'] }}
+<form method="post" action="{{ url_for('reserve', rtype=rtype) }}" class="card stack" novalidate>
+  <!-- 공통: 상단 선택(날짜/영화) -->
+  <div class="stack">
+    <label class="field">
+      <span class="label">상영 날짜</span>
+      <select name="date" class="input" required>
+        {% for d in schedule %}
+          <option value="{{ d.date }}">
+            {{ d.date }} ({{ d.time }}, {{ d.hall }})
           </option>
         {% endfor %}
       </select>
+    </label>
+
+    <label class="field">
+      <span class="label">영화 선택</span>
+      <select name="movie_id" class="input" required>
+        {% for m in movies %}
+          <option value="{{ m.id }}" {% if m.id == movie.id %}selected{% endif %}>
+            {{ m.title }}
+          </option>
+        {% endfor %}
+      </select>
+    </label>
+  </div>
+
+  {# ===================== 일반 예약 ===================== #}
+  {% if is_normal %}
+  <div class="stack">
+    <label class="field">
+      <span class="label">학년반번호</span>
+      <input type="text" name="student_id" class="input" placeholder="예: 10729" required>
+    </label>
+
+    <label class="field">
+      <span class="label">이름</span>
+      <input type="text" name="student_name" class="input" placeholder="예: 홍길동" required>
+    </label>
+  </div>
+
+  {# ===================== 단체 예약 ===================== #}
+  {% elif is_group %}
+  <div class="stack">
+    <label class="field">
+      <span class="label">대표자 학년반번호</span>
+      <input type="text" name="student_id" class="input" placeholder="예: 10202" required>
+    </label>
+
+    <label class="field">
+      <span class="label">대표자 이름</span>
+      <input type="text" name="student_name" class="input" placeholder="예: 홍길동" required>
+    </label>
+
+    <label class="field">
+      <span class="label">단체명</span>
+      <input type="text" name="group_name" class="input" placeholder="예: 코딩반" required>
+    </label>
+
+    <label class="field">
+    <label class="k" for="companions">동반자 학번/이름</label>
+    <textarea id="companions" name="companions" class="input" rows="5"
+      placeholder="예: 10202, 21026, 30413 …&#10;쉼표(,), 공백, 줄바꿈으로 구분하세요. 대표자는 제외하고 입력"></textarea>
+
+    <small class="help" id="groupCount">
+      * 총 인원은 ‘대표자 1명 + 동반자 수’로 자동 계산됩니다 (단체는 2명 이상).
+    </small>
+    </label>
+  </div>
+
+  {# ===================== 교사 예약 ===================== #}
+  {% else %}
+  <div class="stack">
+    <label class="field">
+      <span class="label">담당 교사 성함</span>
+      <input type="text" name="teacher_name" class="input" placeholder="예: 김담임" required>
+    </label>
+
+    <label class="field">
+      <span class="label">담당 과목</span>
+      <input type="text" name="class_info" class="input" placeholder="예: 영어" required>
+    </label>
+
+    <div class="checkbox">
+      <input id="saveInfo" type="checkbox" name="remember" value="1">
+      <label for="saveInfo">내 정보 저장하기</label>
     </div>
+  </div>
+  {% endif %}
 
-    {% if rtype == 'group' %}
-      <div class="stack">
-        <label class="k" style="font-weight:700;">단체명</label>
-        <input class="input" name="group_name" placeholder="예: 합창부 / 축구부">
-      </div>
-      <div class="stack">
-        <label class="k" style="font-weight:700;">인원수</label>
-        <input class="input" name="group_size" type="number" placeholder="5명 이상">
-      </div>
-    {% elif rtype == 'teacher' %}
-      <div class="stack">
-        <label class="k" style="font-weight:700;">담당 교사 성함</label>
-        <input class="input" name="teacher_name" placeholder="예: 홍길동">
-      </div>
-      <div class="stack">
-        <label class="k" style="font-weight:700;">담당 교과 / 반</label>
-        <input class="input" name="class_info" placeholder="예: 과학, 1-2반">
-      </div>
-    {% endif %}
+  <button class="btn btn-primary btn-block" type="submit">예약 완료하기</button>
+</form>
 
-    <div class="stack">
-      <label class="k" style="font-weight:700;">학번</label>
-      <input class="input" name="student_id" placeholder="예: 10202 (1학년 2반 2번)">
-    </div>
-    <div class="stack">
-      <label class="k" style="font-weight:700;">이름</label>
-      <input class="input" name="student_name" placeholder="예: 강준환">
-    </div>
-
-    <button type="submit" class="btn btn-primary btn-block mt-16">
-      예약 완료하기
-    </button>
-  </form>
-
-</section>
+<!-- 동반자 실시간 계산(선택) -->
+<script>
+document.addEventListener('input', (e)=>{
+  if (e.target && e.target.name === 'companions') {
+    const raw = e.target.value || '';
+    const list = raw.split(/[\s,;]+/).map(s=>s.trim()).filter(Boolean);
+    const total = 1 + list.length; // 대표자 1명 + 동반자 수
+    const help = document.getElementById('groupCount');
+    if (help) help.textContent = `* 총 인원: 대표자 1명 + 동반자 ${list.length}명 = ${total}명 (단체는 2명 이상)`;
+  }
+});
+</script>
 {% endblock %}

@@ -34,7 +34,6 @@
           <td style="padding:10px;">{{ r['date'] }} {{ r['time'] }} / {{ r['hall'] }}</td>
           <td style="padding:10px;">{{ r['type'] }}</td>
 
-          <!-- 상태 표시 -->
           <td style="padding:10px;">
             {% if r['status'] == 'approved' %}
               <span class="badge bg-green-100 text-green-700">승인됨</span>
@@ -47,25 +46,45 @@
             {% endif %}
           </td>
 
-          <!-- 작업 영역 -->
           <td style="padding:10px;">
-            <!-- 상태 변경 폼 -->
-            <form method="post" action="{{ url_for('admin_set_status', tid=r['id']) }}"
-                  style="display:inline-flex; gap:6px; align-items:center;">
+            <button class="btn btn-secondary"
+              data-confirm
+              data-title="상태 변경"
+              data-message="해당 예약을 승인으로 되돌릴까요?"
+              data-endpoint="{{ url_for('admin_set_status', tid=r['id']) }}"
+              data-method="POST"
+              data-body='{"status":"approved"}'>
+              승인
+            </button>
 
-              <select name="status" class="input" style="padding:6px 8px; height:36px;">
-                <option value="approved" {% if r['status']=='approved' %}selected{% endif %}>승인</option>
-                <option value="pending"  {% if r['status']=='pending' %}selected{% endif %}>대기</option>
-                <option value="rejected" {% if r['status']=='rejected' %}selected{% endif %}>거절</option>
-              </select>
+            <button class="btn btn-light"
+              data-confirm
+              data-title="상태 변경"
+              data-message="해당 예약을 대기로 되돌릴까요?"
+              data-endpoint="{{ url_for('admin_set_status', tid=r['id']) }}"
+              data-method="POST"
+              data-body='{"status":"pending"}'>
+              대기
+            </button>
 
-              <button class="btn btn-primary" style="padding:6px 10px; height:36px;">저장</button>
-            </form>
+            <button class="btn btn-outline-danger"
+              data-confirm
+              data-title="상태 변경"
+              data-message="해당 예약을 거절로 변경할까요?"
+              data-endpoint="{{ url_for('admin_set_status', tid=r['id']) }}"
+              data-method="POST"
+              data-body='{"status":"rejected"}'>
+              거절
+            </button>
 
-            <!-- 삭제 버튼 -->
-            <form method="post" action="{{ url_for('admin_delete_ticket', tid=r['id']) }}"
-                  style="display:inline;" onsubmit="return confirm('정말 삭제할까요?');">
-              <button class="btn btn-soft" style="padding:6px 10px; height:36px;">삭제</button>
+            <button class="btn btn-danger"
+              data-confirm
+              data-title="예약 삭제"
+              data-message="정말 삭제할까요? 이 작업은 되돌릴 수 없습니다."
+              data-endpoint="{{ url_for('admin_delete_ticket', tid=r['id']) }}"
+              data-method="POST">
+              삭제
+            </button>
             </form>
           </td>
         </tr>

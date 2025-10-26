@@ -136,36 +136,263 @@ select.input {
   cursor:pointer;
 }
 
-/* ==== Brand (logo + text) ==== */
+/* ==== Brand (logo only) ==== */
 .brand {
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: center;
   text-decoration: none;
+  padding: 0;
+  margin: 0;
 }
+
 .brand-mark {
-  height: 80px;                /* ⬅️ 기존 40px → 80px로 2배 확대 */
+  height: 200px;                 /* ← 실제 크기 2배 확대 */
   width: auto;
   object-fit: contain;
   display: block;
-  transition: transform 0.25s ease, opacity 0.25s ease;
+  transition: transform 0.3s ease, opacity 0.3s ease;
 }
-.brand-text {
-  font-weight: 800;
-  font-size: 1.8rem;           /* 텍스트도 살짝 키움 (기존 1.25rem → 1.8rem) */
-  line-height: 1;
-  color: var(--brand);
-  letter-spacing: 0.2px;
-}
+
 .brand:hover .brand-mark {
   transform: scale(1.05);
-  opacity: 0.92;
+  opacity: 0.9;
 }
+
+/* 반응형 대응 */
 @media (max-width: 480px) {
   .brand-mark {
-    height: 60px;              /* 모바일에서는 너무 크지 않게 */
+    height: 60px;               /* 모바일에서는 살짝 줄이기 */
   }
-  .brand-text {
-    font-size: 1.3rem;
-  }
+}
+
+/* ======= Mobile-first fold fit ======= */
+:root{
+  --header-h: 64px;          /* 헤더 고정 높이(필요 시 조정) */
+}
+
+/* 헤더가 너무 커서 컨텐츠가 밀리는 것 방지 */
+.nyca-header{ height: var(--header-h); }
+
+/* 섹션 여백 축소 */
+.section, .container, main{ padding-top: 8px; padding-bottom: 16px; }
+
+/* '현재 상영중' 같은 큰 제목 축소 & 반응형 */
+.h-hero, .h-title-xxl{
+  font-size: clamp(24px, 7.5vw, 44px);
+  letter-spacing: .5px;
+  margin: 8px 0 12px;
+  line-height: 1.1;
+}
+.h-eyebrow{ font-size: clamp(14px, 3.5vw, 18px); }
+
+/* 포스터 카드가 한 화면에 들어오도록: 높이 상한 + 비율 유지  */
+.movie-card{ max-width: 440px; margin: 0 auto; }
+.movie-poster{
+  width: 100%;
+  max-height: min(65vh, 620px);  /* ← 핵심: 화면의 65%를 넘지 않게 */
+  object-fit: contain;           /* 전부 보이게(잘림 방지). 꽉 채우려면 cover */
+  display: block;
+  border-radius: 14px;
+  box-shadow: 0 6px 24px rgba(0,0,0,.12);
+}
+
+/* 제목/버튼 등 첫 화면(1st fold)에 맞추기 */
+.fold{
+  min-height: calc(100dvh - var(--header-h));
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 10px;
+}
+
+/* CTA 버튼이 너무 커지지 않도록 */
+.btn-cta{
+  height: 54px;
+  font-size: clamp(16px, 4.2vw, 20px);
+}
+
+/* ===== Ticket Detail — legacy design ===== */
+.ticket-hero {
+  position: relative;
+  height: 48dvh;
+  min-height: 260px;
+  max-height: 520px;
+  background: #111;
+  overflow: hidden;
+}
+.ticket-hero img {
+  width: 100%; height: 100%;
+  object-fit: cover; opacity: .45; filter: saturate(105%);
+}
+.ticket-hero .title-wrap{
+  position: absolute; left: 20px; bottom: 16px; right: 20px;
+  color: #fff;
+}
+.ticket-hero .eyebrow{font-size: 14px; opacity: .85; margin: 0 0 4px;}
+.ticket-hero .title{
+  font-size: clamp(32px, 9.5vw, 56px);
+  font-weight: 900; letter-spacing:.5px; margin:0;
+}
+.ticket-hero .badge-like{
+  position:absolute; right: 16px; top: 16px;
+  display:flex; align-items:center; gap:8px; color:#fff;
+  background: rgba(0,0,0,.35); padding:6px 10px; border-radius: 999px;
+  font-weight:700;
+}
+
+/* White sheet */
+.ticket-sheet{
+  position: relative; margin-top: -22px;
+  background:#fff; border-radius: 22px 22px 10px 10px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.12);
+  padding: 18px 16px 24px; max-width: 880px; margin-left: auto; margin-right:auto;
+}
+.sheet-head{
+  display:flex; align-items:flex-start; justify-content:space-between; gap:10px;
+}
+.sheet-head .sheet-title{
+  font-size: clamp(28px, 8vw, 48px);
+  font-weight: 900; margin: 0; color:#2b2b34;
+}
+.sheet-head .type-chip{
+  font-weight:800; font-size:14px; padding:6px 10px; border-radius: 999px;
+  color:#fff; letter-spacing:.3px;
+}
+.type-red{ background:#3a3946;}
+.type-gold{ background:#a8863a;}
+.type-prime{ background:linear-gradient(135deg, #88e 0%, #7de 40%, #e6a 100%); }
+
+.kv{ display:grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 10px;}
+.kv .item b{ display:block; font-size:13px; color:#666; margin-bottom:4px;}
+.kv .item span{ font-size:16px; font-weight:700; color:#222;}
+@media (max-width: 540px){ .kv{ grid-template-columns:1fr; } }
+
+.divider{ height:1px; background:#eee; margin: 14px 0; }
+
+.actions{ display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-top:6px; }
+.btn-x{
+  appearance:none; border:0; border-radius:14px; padding:16px 14px;
+  font-weight:800; font-size:16px; cursor:pointer; text-align:center;
+}
+.btn-dark{ background:#3a3946; color:#fff; }
+.btn-soft{ background:#f2f2f4; color:#2b2b34; }
+.btn-danger{ background:#2b2b34; color:#fff; }
+.btn-block{ grid-column: 1 / -1; height:auto; font-size:18px; padding:18px; }
+
+.meta-eyebrow{
+  display:flex; align-items:center; gap:10px; font-weight:900; color:#2b2b34;
+}
+.meta-line{ height:2px; background:#2b2b34; flex:1; opacity:.18; }
+
+/* ticket sticker */
+.sticker{
+  position:absolute; left: 16px; top: -22px;
+  transform: rotate(-8deg);
+  background:#ef476f; color:#fff; font-weight:900;
+  padding:8px 14px; border-radius:10px; box-shadow:0 10px 18px rgba(0,0,0,.12);
+}
+.sticker.gold{ background:#d6b35e; color:#1b1b1b; }
+.sticker.prime{
+  background:linear-gradient(135deg, #8ef 0%, #baf 50%, #f9a 100%); color:#1b1b1b;
+}
+
+/* small helpers */
+.muted{ color:#666; }
+.center{ text-align:center; }
+
+/* ===== Global modal (blurred backdrop) ===== */
+.nyca-modal-overlay{
+  position: fixed; inset: 0; display: none; z-index: 1200;
+}
+.nyca-modal-overlay.show{ display:block; }
+.nyca-modal-backdrop{
+  position:absolute; inset:0;
+  background: rgba(20,22,30,.35);
+  backdrop-filter: blur(6px);
+  opacity:0; transition: opacity .18s ease;
+}
+.nyca-modal-overlay.show .nyca-modal-backdrop{ opacity:1; }
+.nyca-modal{
+  position: relative; z-index:1;
+  width: min(440px, 92vw);
+  margin: 12vh auto 0; padding: 18px 16px 14px;
+  border-radius: 16px; background:#111827; color:#fff;
+  box-shadow: 0 20px 50px rgba(0,0,0,.25);
+  transform: translateY(12px); opacity:.0; transition: all .18s ease;
+}
+.nyca-modal-overlay.show .nyca-modal{
+  transform: translateY(0); opacity:1;
+}
+.nyca-modal h3{ margin:0 0 8px; font-size:18px; font-weight:800;}
+.nyca-modal p{ margin:8px 0 16px; color:#d1d5db; line-height:1.5; }
+.nyca-modal .actions{ display:flex; gap:10px; justify-content:flex-end; }
+.nyca-btn{ appearance:none; border:0; border-radius:12px; padding:12px 14px; font-weight:800; cursor:pointer; }
+.nyca-btn.gray{ background:#e5e7eb; color:#111827; }
+.nyca-btn.dark{ background:#2f3140; color:#fff; }
+body.modal-open{ overflow:hidden; }
+
+/* ===== Ticket Detail – 버튼을 스샷처럼 카드형으로 ===== */
+
+/* 버튼 묶음: 2열 그리드 */
+.t-actions{
+  display:grid;
+  grid-template-columns: 1fr 1fr;  /* 예약 취소 / 영화 정보 */
+  gap:14px;
+  margin-top:8px;
+}
+
+/* 기본 알약 버튼 (카드처럼) */
+.pill{
+  appearance:none; border:0;
+  width:100%;
+  padding:16px 14px;
+  border-radius:16px;
+  font-weight:800; font-size:16px;
+  text-align:center; cursor:pointer;
+  transition:transform .12s ease, box-shadow .12s ease, background .12s ease;
+}
+
+/* 연한 카드(스크린샷 느낌) */
+.pill-soft{
+  background:#f3f4f6;                /* 밝은 회색 */
+  color:#1f2937;                      /* 진회색 텍스트 */
+  box-shadow: inset 0 -1px 0 rgba(0,0,0,.03), 0 1px 0 rgba(0,0,0,.02);
+}
+.pill-soft:hover{ background:#eef0f4; transform: translateY(-1px); }
+
+/* 진한 CTA 버튼 (홈으로) */
+.pill-dark{
+  background: var(--brand);           /* #2b2e3e 계열 */
+  color:#fff;
+  box-shadow: 0 6px 16px rgba(0,0,0,.12);
+}
+.pill-dark:hover{ transform: translateY(-1px); }
+
+/* 홈 버튼은 전체 가로(2칸) 차지 */
+.cta-full{ grid-column: 1 / -1; }
+
+/* 시트 여백/분리감 조금 더 */
+.ticket-sheet{ padding-bottom: 20px; }
+.divider{ height:1px; background:#eef0f4; margin: 16px 0 10px; }
+
+/* 상단 히어로 가독성(사진 위 텍스트) */
+.ticket-hero::after{
+  content:""; position:absolute; inset:0;
+  background: linear-gradient(to bottom, rgba(0,0,0,.45), rgba(0,0,0,.20) 42%, rgba(0,0,0,0));
+  pointer-events:none;
+}
+
+/* Form fields */
+.field { display:flex; flex-direction:column; gap:8px; }
+.field .label { font-weight:800; color:#2f3141; font-size:15px; }
+.help { color:#6b7280; font-size:13px; margin-top:6px; }
+
+/* Autofill 색 보정(크롬) */
+.input:-webkit-autofill,
+.input:-webkit-autofill:hover,
+.input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #111;
+  -webkit-box-shadow: 0 0 0px 1000px #fff inset;
+  box-shadow: 0 0 0px 1000px #fff inset;
+  caret-color:#111;
 }

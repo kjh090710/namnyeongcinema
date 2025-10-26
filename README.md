@@ -21,3 +21,4 @@ python app.py
 ## 데이터
 - SQLite 파일: `cinema.db`
 - CSV 내보내기: `/admin/export/<movie_id>.csv`
+

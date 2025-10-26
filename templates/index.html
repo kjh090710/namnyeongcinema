@@ -1,4 +1,3 @@
-
 {% extends "base.html" %}
 {% block content %}
   <h1 class="h3">이번 주 영화 예약</h1>
@@ -14,8 +13,8 @@
     </div>
 
     <form class="card form" action="{{ url_for('reserve') }}" method="post">
-      <label>학번 (예: 10729)
-        <input name="student_id" placeholder="학번 5자리 또는 6자리" required>
+      <label>학번 (예: 10202)
+        <input name="student_id" placeholder="학번 5자리" required>
       </label>
       <label>이름
         <input name="student_name" placeholder="이름" required>

@@ -19,7 +19,6 @@
       overlay.classList.add('is-open');
       btn.setAttribute('aria-expanded', 'true');
 
-      // 첫 링크로 포커스 이동
       const first = links()[0];
       first && first.focus({ preventScroll: true });
     });
@@ -32,7 +31,6 @@
     overlay.classList.remove('is-open');
     btn.setAttribute('aria-expanded', 'false');
 
-    // 트랜지션 후 hidden 처리
     const tidy = () => {
       sheet.hidden = true;
       overlay.hidden = true;
@@ -49,7 +47,6 @@
     isOpen ? closeMenu() : openMenu();
   };
 
-  // 포커스 트랩
   const onKeydown = (e) => {
     if (e.key === 'Escape') {
       if (btn.classList.contains('is-open')) {
@@ -88,10 +85,8 @@
     }
   };
 
-  // 이벤트 바인딩
   btn.addEventListener('click', toggleMenu);
   overlay.addEventListener('click', closeMenu);
 
-  // 초기 ARIA
   btn.setAttribute('aria-expanded', 'false');
 })();

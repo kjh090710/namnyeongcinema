@@ -1,16 +1,32 @@
 {% extends "base.html" %}
 {% block content %}
-{% set first = movies[0] if movies else None %}
 
-<section class="stack mt-24">
-  <div class="h-eyebrow">현재 상영중</div>
-  <h1 class="h-title-xxl">{{ first.title if first else "남녕시네마" }}</h1>
+<section class="section fold container">
+  <p class="h-eyebrow text-muted">현재 상영중</p>
 
-  {% if first %}
-    <div class="poster-frame"><img class="poster" src="{{ first.poster or '/static/images/posters/default.jpg' }}" alt=""></div>
-    <a class="btn btn-primary btn-block mt-24" href="{{ url_for('booking_mode', movieId=first.id) }}">예약하러 가기</a>
+  {% if featured %}
+    <h1 class="h-hero">{{ featured.title }}</h1>
+
+    <div class="movie-card">
+      <img
+        src="{{ featured.poster or url_for('static', filename='images/poster-placeholder.jpg') }}"
+        alt="{{ featured.title }}"
+        class="movie-poster"
+      >
+    </div>
+
+    <a class="btn btn-primary btn-cta mt-12"
+       href="{{ url_for('booking_mode', movie_id=featured.id) }}">
+      예약하러 가기
+    </a>
+  {% else %}
+    <!-- 빈 상태 UI: 영화가 없을 때 안내 -->
+    <h1 class="h-hero">상영작이 없습니다</h1>
+    <p class="text-muted">관리자에서 영화를 추가하면 홈에 표시됩니다.</p>
+    {% if session.get('is_admin') %}
+      <a class="btn btn-primary mt-12" href="{{ url_for('admin_movies') }}">🎬 영화 추가하러 가기</a>
+    {% endif %}
   {% endif %}
-
-  <p class="text-muted">남녕인만의 특별한 라이프스타일_<br>남녕시네마_</p>
 </section>
+
 {% endblock %}
