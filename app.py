@@ -328,6 +328,19 @@ def create_app():
             flash("티켓을 찾을 수 없습니다.", "error")
             return redirect(url_for("tickets"))
         return render_template("ticket_detail.html", t=row)
+    
+    @app.route("/tickets", endpoint="tickets")
+    def tickets():
+        tab = (request.args.get("tab") or "normal").lower()
+        with db() as conn:
+            if tab not in [t.lower() for t in BOOK_TYPES]:
+                tab = "normal"
+            rows = conn.execute(
+                "SELECT * FROM tickets WHERE type=? ORDER BY created_at DESC",
+                (tab,)
+            ).fetchall()
+        return render_template("tickets.html", tab=tab, tickets=rows)
+
 
     @app.post("/tickets/<tid>/delete")
     def ticket_delete(tid: str):
