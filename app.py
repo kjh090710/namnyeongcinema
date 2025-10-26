@@ -168,7 +168,7 @@ def create_app():
     def admin_required(fn):
         @wraps(fn)
         def wrapper(*args, **kwargs):
-            if not session.get("is_admin"): 
+            if not session.get("is_admin"):
                 return redirect(url_for("admin_login"))
             return fn(*args, **kwargs)
         return wrapper
@@ -217,6 +217,9 @@ def create_app():
         movies = load_all_movies()
         featured = movies[0] if movies else None
         return render_template("home.html", movies=movies, featured=featured)
+
+    # 🔧 템플릿 호환용 'index' 별칭 추가 (url_for('index') 지원)
+    app.add_url_rule("/", endpoint="index", view_func=home)
 
     @app.route("/booking", endpoint="booking_mode")
     def booking_mode():
@@ -340,7 +343,6 @@ def create_app():
                 (tab,)
             ).fetchall()
         return render_template("tickets.html", tab=tab, tickets=rows)
-
 
     @app.post("/tickets/<tid>/delete")
     def ticket_delete(tid: str):
