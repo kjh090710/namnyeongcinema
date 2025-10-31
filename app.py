@@ -344,12 +344,21 @@ def create_app():
             ).fetchall()
         return render_template("tickets.html", tab=tab, tickets=rows)
 
-    @app.post("/tickets/<tid>/delete")
-    def ticket_delete(tid: str):
+    @app.route("/tickets/<tid>/delete", methods=["POST","OPTIONS"])
+    def ticket_delete(tid):
+        # CORS/OPTIONS 등은 기존 그대로…
+
         with db() as conn:
-            conn.execute("DELETE FROM tickets WHERE id=?", (tid,))
-        flash("티켓이 삭제되었습니다.", "ok")
-        return redirect(url_for("tickets", tab=request.args.get("tab","normal")))
+            conn.execute("DELETE FROM tickets WHERE id = ?", (tid,))
+
+        # where to go next
+        next_where = request.args.get("next", "").strip()
+        if next_where == "home":
+            return redirect(url_for("index")), 303
+
+        # 기존 동작 유지(내 티켓 탭으로)
+        tab = request.args.get("tab", "all")
+        return redirect(url_for('index')), 303
 
     @app.route("/notices", endpoint="notices")
     def notices():
