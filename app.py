@@ -169,6 +169,24 @@ def has_column(conn: sqlite3.Connection, table: str, col: str) -> bool:
     rows = conn.execute(f"PRAGMA table_info({table})").fetchall()
     return any(r[1] == col for r in rows)  # r[1] = column name
 
+def get_movie_schedule(movie_id: str):
+    """
+    schedule 테이블에서 해당 영화의 상영일정 목록을 가져온다.
+    테이블/컬럼이 없으면 빈 목록 반환(안전).
+    """
+    try:
+        with db() as conn:
+            cur = conn.execute("""
+                SELECT date, time, hall
+                FROM schedule
+                WHERE movie_id=?
+                ORDER BY date ASC, time ASC
+            """, (movie_id,))
+            return [dict(r) for r in cur.fetchall()]
+    except Exception as e:
+        print("[get_movie_schedule] warn:", e)
+        return []
+
 # -----------------------------
 # Flask 애플리케이션 생성 (앱 팩토리)
 # -----------------------------
@@ -359,10 +377,6 @@ def create_app():
                     group_size = int(form.get("group_size", "0"))
                 except Exception:
                     group_size = 0
-                # 최소 2명
-                if not group_name or group_size < 2:
-                    flash("단체명과 2명 이상의 인원을 입력하세요.", "error")
-                    return redirect(request.url)
                 # 대표자(선택: 기존 student_id/name 사용) — 없으면 경고 없이 진행
                 member_names_raw = form.get("member_names", "")
                 member_names = normalize_member_names(member_names_raw)
@@ -480,6 +494,35 @@ def create_app():
     def notices():
         notes = ["안녕하십니까? 남녕고등학교 제40대 학생회장 이재권입니다. 우리 남녕고등학교는 1986년 설립되어 제주도, 더 나아가 대한민국에서 가장 훌륭한 학교 중 하나로 발전해 왔습니다. 제40대 학생자치회는 선배님들께서 다져 오신 유서 깊은 전통의 명맥을 이어 받아, 학생 모두가 자신의 빛을 발할 수 있도록 힘쓰겠습니다. 선두에 서서 학생들을 억지로 끌고 가는 것이 아니라, 맨 뒤에서 한 사람의 낙오도 발생하지 않도록 도와주는 든든한 모습으로 서 있겠습니다. 저희의 임기가 끝날 즈음, 모두에게 박수 받을 수 있도록 열심히 활동하는 제40대 학생자치회가 되겠습니다. 우리들은 긍지 높은 남녕인입니다."]
         return render_template("notices.html", notices=notes)
+    
+    @app.route("/movie/<movie_id>", methods=["GET"], endpoint="movie_info")
+    def movie_info(movie_id):
+        """
+        영화 정보 상세 페이지
+        """
+        mv = get_movie(movie_id)
+        if not mv:
+            flash("영화 정보를 찾을 수 없습니다.", "error")
+            return redirect(url_for("index"))
+
+        # 스케줄(있으면 표시, 없으면 빈 리스트)
+        schedule = get_movie_schedule(movie_id)
+
+        # 안전한 키 접근을 위해 기본값 설정
+        movie = {
+            "id": mv.get("id"),
+            "title": mv.get("title", "제목 미상"),
+            "poster": mv.get("poster"),
+            "genre": mv.get("genre", "-"),
+            "rating": mv.get("rating", "-"),
+            "runtime": mv.get("runtime", "-"),
+            "summary": mv.get("summary") or mv.get("synopsis") or "줄거리 정보가 아직 없습니다.",
+            "director": mv.get("director", "-"),
+            "actors": mv.get("actors", []),
+            "year": mv.get("year", ""),
+        }
+
+        return render_template("movie_info.html", movie=movie, schedule=schedule)
 
     @app.route("/settings", endpoint="settings")
     def settings_view():
