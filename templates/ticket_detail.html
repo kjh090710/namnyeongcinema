@@ -72,10 +72,11 @@
       data-confirm
       data-title="예약 취소"
       data-message="정말 예약을 취소할까요? 취소 후 복구할 수 없습니다."
-      data-endpoint="{{ url_for('ticket_delete', tid=t['id'], tab=t['type']) }}"
+      data-endpoint="{{ url_for('ticket_delete', tid=t['id'], next='home') }}"
       data-method="POST">
       예약 취소
     </button>
+
 
     <a class="pill pill-soft" href="https://movie.naver.com/" target="_blank" rel="noopener">영화 정보</a>
     <a class="pill pill-soft" href="{{ url_for('notices') }}">상영관 규칙</a>

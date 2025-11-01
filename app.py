@@ -17,6 +17,62 @@ except Exception:
 # -----------------------------
 # 공용 유틸 (current_app 기반으로 DB 경로 사용)
 # -----------------------------
+
+TYPE_CODE = {"normal": "1", "group": "2", "teacher": "3"}
+
+def make_ticket_id(rtype: str, date_str: str, student_id: str | None) -> str:
+    """
+    규칙: 티켓구분번호(1/2/3) + YY + MMDD + (student_id; 교사 제외)
+    - rtype: normal/group/teacher
+    - date_str: 'YYYY-MM-DD'
+    - student_id: 학번(교사면 None 또는 '')
+    """
+    code = TYPE_CODE.get((rtype or "").lower(), "9")
+    try:
+        dt = datetime.strptime(date_str, "%Y-%m-%d")
+        yy = dt.strftime("%y")       # 25
+        mmdd = dt.strftime("%m%d")   # 1102
+    except Exception:
+        # date_str가 예상치 못한 형식일 때의 안전장치
+        parts = (date_str or "").split("-")
+        yy = (parts[0][-2:] if len(parts) > 0 else "00")
+        mm = (parts[1] if len(parts) > 1 else "00").zfill(2)
+        dd = (parts[2] if len(parts) > 2 else "00").zfill(2)
+        mmdd = f"{mm}{dd}"
+
+    tail = "" if (rtype == "teacher" or not student_id) else str(student_id)
+    base = f"{code}{yy}{mmdd}{tail}"
+
+    # 중복 방지: 이미 있으면 뒤에 -1, -2 ... 를 붙임
+    candidate = base
+    n = 1
+    with db() as conn:
+        while conn.execute("SELECT 1 FROM tickets WHERE id = ? LIMIT 1", (candidate,)).fetchone():
+            n += 1
+            candidate = f"{base}-{n}"
+    return candidate
+
+def normalize_member_names(raw: str) -> str:
+    """
+    입력: '홍길동, 김철수\n이영희' 같이 섞여 올 수 있음
+    출력: '홍길동,김철수,이영희' (공백 제거, 빈 항목 제거)
+    """
+    if not raw:
+        return ""
+    parts = []
+    for sep_split in raw.replace("\r", "").replace("\t", " ").split("\n"):
+        for p in sep_split.split(","):
+            name = p.strip()
+            if name:
+                parts.append(name)
+    # 중복 제거(입력 편의), 순서 유지
+    seen = set()
+    uniq = []
+    for n in parts:
+        if n not in seen:
+            uniq.append(n); seen.add(n)
+    return ",".join(uniq)
+
 def now_iso():
     return (datetime.now(APP_TZ) if APP_TZ else datetime.now()).isoformat()
 
@@ -108,6 +164,10 @@ def get_schedule_for(date):
 
 def poster_or_placeholder(url: str) -> str:
     return url or "https://picsum.photos/seed/placeholder/400/600"
+
+def has_column(conn: sqlite3.Connection, table: str, col: str) -> bool:
+    rows = conn.execute(f"PRAGMA table_info({table})").fetchall()
+    return any(r[1] == col for r in rows)  # r[1] = column name
 
 # -----------------------------
 # Flask 애플리케이션 생성 (앱 팩토리)
@@ -238,80 +298,136 @@ def create_app():
             return redirect(next_url)
         return render_template("consent.html", next_url=next_url)
 
-    @app.route("/reserve/<rtype>", methods=["GET","POST"], endpoint="reserve")
+    @app.route("/reserve/<rtype>", methods=["GET", "POST"], endpoint="reserve")
     def reserve(rtype: str):
         rtype = (rtype or "").lower()
         if rtype not in BOOK_TYPES:
             flash("잘못된 예약 유형입니다.", "error")
             return redirect(url_for("booking_mode"))
+
+        # 교사 예약 접근 제어
         if rtype == "teacher" and not session.get("teacher_authenticated"):
             flash("교사 전용 예약입니다. 인증해 주세요.", "error")
             next_url = request.full_path if request.query_string else request.path
             return redirect(url_for("teacher_login", next=next_url))
 
+        # 영화 선택
         movie_id = request.args.get("movieId") or request.form.get("movie_id")
+        all_movies = load_all_movies()
         if not movie_id:
-            allm = load_all_movies(); movie_id = allm[0]["id"] if allm else "unknown"
-        movie = get_movie(movie_id)
+            movie_id = all_movies[0]["id"] if all_movies else None
+        movie = get_movie(movie_id) if movie_id else None
 
+        # 스케줄 존재 확인
         sched = get_schedule_dates()
         if not sched:
             flash("현재 예약 가능한 날짜가 없습니다. (관리자에게 문의)", "error")
             return redirect(url_for("booking_mode"))
 
+        # POST 처리(예약 생성)
         if request.method == "POST":
-            date = (request.form.get("date") or "").strip()
-            student_id   = (request.form.get("student_id") or "").strip()
-            student_name = (request.form.get("student_name") or "").strip()
-
-            if not date:         flash("날짜를 선택하세요.", "error"); return redirect(request.url)
-            if not student_id:   flash("대표자의 학번(번호)을 입력하세요.", "error"); return redirect(request.url)
-            if not student_name: flash("대표자 이름을 입력하세요.", "error"); return redirect(request.url)
+            form = request.form.to_dict(flat=True)
+            # 공통
+            date = (form.get("date") or "").strip()
+            if not date:
+                flash("날짜를 선택하세요.", "error")
+                return redirect(request.url)
 
             sche = get_schedule_for(date)
             if not sche:
                 flash("선택한 날짜는 예약할 수 없습니다.", "error")
                 return redirect(request.url)
 
-            time_ = sche["time"]; hall = sche["hall"]
-            group_name = group_size = teacher_name = class_info = None
+            time_ = sche["time"]
+            hall = sche["hall"]
 
-            if rtype == "group":
-                group_name = (request.form.get("group_name") or "").strip()
-                companions_raw = (request.form.get("companions") or "").strip()
-                parts = [p.strip() for p in re.split(r"[,\n\r\t ]+", companions_raw) if p.strip()]
-                group_size = 1 + len(parts)
-                class_info = ", ".join(parts) if parts else None
+            # 일반/단체/교사별 필드
+            student_id = (form.get("student_id") or "").strip()
+            student_name = (form.get("student_name") or "").strip()
+
+            if rtype == "normal":
+                if not student_id:
+                    flash("학번을 입력하세요.", "error")
+                    return redirect(request.url)
+                if not student_name:
+                    flash("이름을 입력하세요.", "error")
+                    return redirect(request.url)
+
+            elif rtype == "group":
+                group_name = (form.get("group_name") or "").strip()
+                try:
+                    group_size = int(form.get("group_size", "0"))
+                except Exception:
+                    group_size = 0
+                # 최소 2명
                 if not group_name or group_size < 2:
                     flash("단체명과 2명 이상의 인원을 입력하세요.", "error")
                     return redirect(request.url)
-
-            elif rtype == "teacher":
-                teacher_name = (request.form.get("teacher_name") or "").strip()
-                class_info   = (request.form.get("class_info") or "").strip()
+                # 대표자(선택: 기존 student_id/name 사용) — 없으면 경고 없이 진행
+                member_names_raw = form.get("member_names", "")
+                member_names = normalize_member_names(member_names_raw)
+            else:  # teacher
+                teacher_name = (form.get("teacher_name") or "").strip()
+                class_info = (form.get("class_info") or "").strip()
                 if not teacher_name:
                     flash("담당 교사 성함을 입력하세요.", "error")
                     return redirect(request.url)
+                # 교사 예약은 학번/이름 필수 아님
+                if not student_id:
+                    student_id = None
+                if not student_name:
+                    student_name = None
 
             status = "approved" if rtype == "normal" else "pending"
-            t_id = uuid.uuid4().hex[:10]
+
+            # 규칙 기반 예약 ID
+            t_id = make_ticket_id(rtype, date, student_id if rtype != "teacher" else None)
+
+            # INSERT 준비
             with db() as conn:
-                conn.execute("""
-                    INSERT INTO tickets
-                    (id, type, movie_id, movie_title, date, time, hall,
-                     group_name, group_size, teacher_name, class_info,
-                     student_id, student_name, status, created_at)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, (
-                    t_id, rtype, movie["id"], movie["title"], date, time_, hall,
-                    group_name, group_size, teacher_name, class_info,
+                cols = [
+                    "id", "type", "movie_id", "movie_title", "date", "time", "hall",
+                    "group_name", "group_size", "teacher_name", "class_info",
+                    "student_id", "student_name", "status", "created_at"
+                ]
+                vals = [
+                    t_id, rtype, movie["id"] if movie else None, movie["title"] if movie else None,
+                    date, time_, hall,
+                    None, None, None, None,  # group/teacher는 아래에서 덮어씀
                     student_id, student_name, status, now_iso()
-                ))
+                ]
+
+                # 타입별 추가/치환
+                if rtype == "group":
+                    # group_name, group_size 채우기
+                    vals[7] = group_name
+                    vals[8] = group_size
+                    # member_names 컬럼이 있으면 추가
+                    if has_column(conn, "tickets", "member_names"):
+                        cols.insert(11, "member_names")  # student_id 위치 앞에 끼워넣음
+                        vals.insert(11, member_names)
+
+                elif rtype == "teacher":
+                    # teacher_name, class_info 채우기
+                    vals[9] = teacher_name
+                    vals[10] = class_info
+                    # 교사는 student_id/name 없어도 됨(위에서 None 처리)
+
+                # 동적 SQL
+                q_marks = ",".join(["?"] * len(cols))
+                sql = f"INSERT INTO tickets ({', '.join(cols)}) VALUES ({q_marks})"
+                conn.execute(sql, tuple(vals))
+
             return redirect(url_for("ticket_detail", tid=t_id))
 
-        return render_template("reserve.html",
-                               rtype=rtype, movie=movie,
-                               movies=load_all_movies(), schedule=sched)
+        # GET 렌더
+        return render_template(
+            "reserve.html",
+            rtype=rtype,
+            movie=movie,
+            movies=all_movies,
+            schedule=sched
+        )
 
     @app.route("/reserve", methods=["GET"])
     def reserve_query_to_path():

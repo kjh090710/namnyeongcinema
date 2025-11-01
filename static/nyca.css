@@ -12,387 +12,217 @@ html,body{background:var(--bg);color:var(--ink);font-family:"Pretendard","Noto S
 a{color:inherit;text-decoration:none}
 img{max-width:100%;height:auto;display:block}
 
-/* Layout */
+/* Layout helpers */
 .container{width:100%;max-width:1200px;margin:0 auto;padding:0 20px}
 .stack{display:flex;flex-direction:column;gap:16px}
 .center{display:flex;justify-content:center;align-items:center}
 .mt-8{margin-top:8px}.mt-12{margin-top:12px}.mt-16{margin-top:16px}.mt-24{margin-top:24px}.mt-32{margin-top:32px}.mt-40{margin-top:40px}.mt-48{margin-top:48px}
 .mb-16{margin-bottom:16px}.mb-24{margin-bottom:24px}.mb-32{margin-bottom:32px}
 
-/* Header */
-.nyca-header{display:flex;align-items:center;justify-content:space-between;padding:22px 20px}
+/* ===== Header ===== */
+.nyca-header{
+  display:flex; align-items:center; justify-content:space-between;
+  gap:16px; padding:16px 20px; background:transparent;
+}
 .nyca-brand{display:flex;gap:12px;align-items:center;font-weight:800;font-size:28px}
 .nyca-brand img{height:34px;width:auto}
-.nyca-menu-btn{width:36px;height:24px;display:inline-flex;flex-direction:column;justify-content:space-between}
-.nyca-menu-btn span{height:3px;background:#2e2f3e;border-radius:3px}
 
-/* Typography */
+/* ==== Brand (logo only) ==== */
+.brand{display:flex;align-items:center;justify-content:center;text-decoration:none;padding:0;margin:0}
+.brand-mark{
+  height:200px;           /* 요청: 2배 크기 */
+  width:auto; object-fit:contain; display:block;
+  transition:transform .3s ease, opacity .3s ease;
+}
+.brand:hover .brand-mark{transform:scale(1.05);opacity:.9}
+@media (max-width:480px){ .brand-mark{height:60px} } /* 모바일은 축소 */
+
+/* ===== Refined Menu Button (no border) ===== */
+.nyca-menu-btn{
+  position:relative; width:38px; height:30px;
+  display:flex; flex-direction:column; justify-content:center; align-items:center; gap:6px;
+  background:none; border:none; cursor:pointer; padding:0; transition:transform .3s ease;
+}
+.nyca-menu-btn:hover{ transform:scale(1.05) }
+.nyca-menu-btn span{
+  display:block; width:100%; height:3px; border-radius:2px; background:var(--ink);
+  transition:transform .3s cubic-bezier(.22,.61,.36,1), opacity .2s ease, background .3s ease;
+}
+.nyca-menu-btn.is-open span:nth-child(1){transform:translateY(9px) rotate(45deg)}
+.nyca-menu-btn.is-open span:nth-child(2){opacity:0}
+.nyca-menu-btn.is-open span:nth-child(3){transform:translateY(-9px) rotate(-45deg)}
+@media (prefers-color-scheme: dark){ .nyca-menu-btn span{background:#fff} }
+
+/* ===== Typography ===== */
 .h-eyebrow{font-weight:900;color:#b7bcc6;font-size:34px}
 .h-title-xxl{font-weight:900;color:#2f3141;font-size:56px;line-height:1.02}
 .h-title-xl{font-weight:900;color:#2f3141;font-size:72px;line-height:1.02}
 .text-muted{color:#9aa3b1}
 .k{color:#616776}
 
-/* Card */
+/* ===== Card ===== */
 .card{background:var(--surface);border-radius:var(--radius-lg);box-shadow:var(--shadow);padding:32px}
 .card-soft{background:#f8f9fb;border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px}
 
-/* Inputs */
+/* ===== Inputs ===== */
+.field{display:flex;flex-direction:column;gap:8px}
+.field .label{font-weight:800;color:#2f3141;font-size:15px}
+.help{color:#6b7280;font-size:13px;margin-top:6px}
 .input{width:100%;padding:14px 12px;border:2px solid var(--border);border-radius:var(--radius-sm);font-size:16px;background:#fff}
 .input:focus{outline:none;border-color:var(--accent)}
 .input-underline{border:none;border-bottom:2px solid var(--border);border-radius:0;background:transparent;padding-left:0}
 .checkbox{display:flex;gap:10px;align-items:center;color:#7d8796}
+.input:-webkit-autofill,
+.input:-webkit-autofill:hover,
+.input:-webkit-autofill:focus{
+  -webkit-text-fill-color:#111;
+  -webkit-box-shadow:0 0 0px 1000px #fff inset;
+  box-shadow:0 0 0px 1000px #fff inset;
+  caret-color:#111;
+}
 
-/* Buttons */
-.btn{display:inline-flex;justify-content:center;align-items:center;gap:8px;
-     padding:14px 16px;border-radius:var(--radius);font-weight:800;border:1px solid transparent;cursor:pointer}
+/* Select box */
+select.input{
+  appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' stroke='%239198a6' stroke-width='2' viewBox='0 0 24 24'%3E<path d='M6 9l6 6 6-6'/></svg>");
+  background-repeat:no-repeat; background-position:right 12px center; background-size:16px; cursor:pointer;
+}
+
+/* ===== Buttons ===== */
+.btn{
+  display:inline-flex; justify-content:center; align-items:center; gap:8px;
+  padding:14px 16px; border-radius:var(--radius); font-weight:800; border:1px solid transparent; cursor:pointer;
+}
 .btn-primary{background:var(--brand);color:#fff}
 .btn-soft{background:#eef0f4}
 .btn-block{width:100%}
 
-/* Poster & Media */
+/* ===== Poster & Media ===== */
 .poster{width:100%;height:auto;aspect-ratio:2/3;object-fit:cover;object-position:center;border-radius:12px}
 .poster-frame{border:6px solid #cfd2d7;border-radius:12px;overflow:hidden}
 .ticket-poster{width:100%;max-height:470px;object-fit:cover}
 
-/* Booking buttons */
+/* ===== Booking buttons ===== */
 .booking-btn{display:block;width:100%;padding:18px;border-radius:12px;text-align:center;font-weight:900;margin:18px 0}
 .booking-normal{background:var(--brand);color:#fff}
 .booking-gray{background:#d2d3d7;color:#fff;position:relative}
 .ribbon{position:absolute;right:-10px;top:-12px;background:#e11d48;color:#fff;padding:4px 10px;border-radius:6px;transform:rotate(20deg);font-size:12px}
 
-/* Ticket detail */
-.ticket-card{background:var(--surface);margin-top:-34px;border-radius:28px 28px 0 0;padding:22px 20px 28px;position:relative;z-index:1;box-shadow:0 -2px 0 rgba(0,0,0,.03), 0 10px 30px rgba(0,0,0,.08)}
-.ticket-title{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.ticket-title h1{font-size:64px;line-height:1.02;margin:14px 0 0;font-weight:900;color:#2f3141}
-.ticket-meta{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px;margin:18px 0 8px}
-.actions{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.actions .btn-dark{background:var(--brand);color:#fff;border-radius:14px;padding:18px 12px;text-align:center;font-weight:900;margin-top:14px;grid-column:1 / -1}
+/* ===== Ticket detail (legacy look, polished) ===== */
+.ticket-hero{
+  position:relative; height:48dvh; min-height:260px; max-height:520px; background:#111; overflow:hidden;
+}
+.ticket-hero img{width:100%;height:100%;object-fit:cover;opacity:.45;filter:saturate(105%)}
+.ticket-hero::after{
+  content:""; position:absolute; inset:0;
+  background:linear-gradient(to bottom, rgba(0,0,0,.45), rgba(0,0,0,.20) 42%, rgba(0,0,0,0));
+  pointer-events:none;
+}
+.ticket-hero .title-wrap{position:absolute;left:20px;bottom:16px;right:20px;color:#fff}
+.ticket-hero .eyebrow{font-size:14px;opacity:.85;margin:0 0 4px}
+.ticket-hero .title{font-size:clamp(32px,9.5vw,56px);font-weight:900;letter-spacing:.5px;margin:0}
 
-/* Responsive */
-@media (min-width:900px){
-  .h-title-xxl{font-size:72px}
+.ticket-sheet{
+  position:relative; margin-top:-22px; background:#fff; border-radius:22px 22px 10px 10px;
+  box-shadow:0 10px 30px rgba(0,0,0,.12); padding:18px 16px 24px; max-width:880px; margin-left:auto; margin-right:auto;
+}
+.sheet-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.sheet-head .sheet-title{font-size:clamp(28px,8vw,48px);font-weight:900;margin:0;color:#2b2b34}
+.sheet-head .type-chip{font-weight:800;font-size:14px;padding:6px 10px;border-radius:999px;color:#fff;letter-spacing:.3px}
+.type-red{background:#3a3946}
+.type-gold{background:#a8863a}
+.type-prime{background:linear-gradient(135deg, #88e 0%, #7de 40%, #e6a 100%)}
+
+.kv{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:10px}
+.kv .item b{display:block;font-size:13px;color:#666;margin-bottom:4px}
+.kv .item span{font-size:16px;font-weight:700;color:#222}
+@media (max-width:540px){ .kv{grid-template-columns:1fr} }
+
+.divider{height:1px;background:#eef0f4;margin:16px 0 10px}
+
+/* Ticket actions as “pill cards” */
+.t-actions{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:8px}
+.pill{
+  appearance:none; border:0; width:100%; padding:16px 14px; border-radius:16px;
+  font-weight:800; font-size:16px; text-align:center; cursor:pointer;
+  transition:transform .12s ease, box-shadow .12s ease, background .12s ease;
+}
+.pill-soft{background:#f3f4f6;color:#1f2937;box-shadow:inset 0 -1px 0 rgba(0,0,0,.03), 0 1px 0 rgba(0,0,0,.02)}
+.pill-soft:hover{background:#eef0f4;transform:translateY(-1px)}
+.pill-dark{background:var(--brand);color:#fff;box-shadow:0 6px 16px rgba(0,0,0,.12)}
+.pill-dark:hover{transform:translateY(-1px)}
+.cta-full{grid-column:1 / -1}
+
+/* sticker */
+.sticker{position:absolute;left:16px;top:-22px;transform:rotate(-8deg);background:#ef476f;color:#fff;font-weight:900;padding:8px 14px;border-radius:10px;box-shadow:0 10px 18px rgba(0,0,0,.12)}
+.sticker.gold{background:#d6b35e;color:#1b1b1b}
+.sticker.prime{background:linear-gradient(135deg, #8ef 0%, #baf 50%, #f9a 100%);color:#1b1b1b}
+
+.muted{color:#666}
+.center{text-align:center}
+
+/* ===== Nav sheet & overlay (animated) ===== */
+.nyca-menu{
+  position:fixed; top:64px; right:16px; left:16px;
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius-lg); box-shadow:var(--shadow);
+  z-index:30; overflow:hidden;
+  transform:translateY(-8px) scale(.98); opacity:0; pointer-events:none;
+  transition:transform .24s cubic-bezier(.22,.61,.36,1), opacity .24s ease;
+}
+.nyca-menu.is-open{ transform:translateY(0) scale(1); opacity:1; pointer-events:auto }
+.nyca-menu-list{list-style:none;margin:0;padding:10px}
+.nyca-menu-list li{margin:0}
+.nyca-menu-list a{display:block;padding:14px 16px;border-radius:12px;font-weight:800;color:var(--ink)}
+.nyca-menu-list a:hover{background:#eef1f6}
+
+.nyca-overlay{
+  position:fixed; inset:0; background:rgba(15,18,32,.32); backdrop-filter:blur(2px);
+  z-index:20; opacity:0; pointer-events:none; transition:opacity .24s ease;
+}
+.nyca-overlay.is-open{opacity:1;pointer-events:auto}
+
+/* 접근성: 애니메이션 최소화 */
+@media (prefers-reduced-motion: reduce){
+  .nyca-menu, .nyca-overlay, .nyca-menu-btn span{transition:none}
 }
 
+/* ===== Mobile-first fold fit ===== */
+.section, .container, main{padding-top:8px;padding-bottom:16px}
+.h-hero, .h-title-xxl{
+  font-size:clamp(24px,7.5vw,44px);
+  letter-spacing:.5px; margin:8px 0 12px; line-height:1.1;
+}
+.h-eyebrow{font-size:clamp(14px,3.5vw,18px)}
+.movie-card{max-width:440px;margin:0 auto}
+.movie-poster{
+  width:100%; max-height:min(65vh,620px);
+  object-fit:contain; display:block; border-radius:14px; box-shadow:0 6px 24px rgba(0,0,0,.12);
+}
+.fold{min-height:100dvh; display:grid; grid-template-rows:auto 1fr auto; gap:10px}
+.btn-cta{height:54px;font-size:clamp(16px,4.2vw,20px)}
+
+/* ===== Global modal (blurred backdrop) ===== */
+.nyca-modal-overlay{position:fixed;inset:0;display:none;z-index:1200}
+.nyca-modal-overlay.show{display:block}
+.nyca-modal-backdrop{position:absolute;inset:0;background:rgba(20,22,30,.35);backdrop-filter:blur(6px);opacity:0;transition:opacity .18s ease}
+.nyca-modal-overlay.show .nyca-modal-backdrop{opacity:1}
+.nyca-modal{
+  position:relative; z-index:1; width:min(440px,92vw);
+  margin:12vh auto 0; padding:18px 16px 14px; border-radius:16px; background:#111827; color:#fff;
+  box-shadow:0 20px 50px rgba(0,0,0,.25);
+  transform:translateY(12px); opacity:0; transition:all .18s ease;
+}
+.nyca-modal-overlay.show .nyca-modal{transform:translateY(0);opacity:1}
+.nyca-modal h3{margin:0 0 8px;font-size:18px;font-weight:800}
+.nyca-modal p{margin:8px 0 16px;color:#d1d5db;line-height:1.5}
+.nyca-modal .actions{display:flex;gap:10px;justify-content:flex-end}
+.nyca-btn{appearance:none;border:0;border-radius:12px;padding:12px 14px;font-weight:800;cursor:pointer}
+.nyca-btn.gray{background:#e5e7eb;color:#111827}
+.nyca-btn.dark{background:#2f3140;color:#fff}
+body.modal-open{overflow:hidden}
+
+/* ===== Small states ===== */
 .text-muted.ok{color:#1e4db7}
 .text-muted.danger{color:#dc2626}
 .text-muted.muted2{color:#6b7280}
-
-/* ====== Nav sheet & overlay (animated) ====== */
-.nyca-menu{
-  position: fixed; top: 64px; right: 16px; left: 16px;
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--radius-lg); box-shadow: var(--shadow);
-  z-index: 30; overflow: hidden;
-
-  /* 초기 상태 (닫힘) */
-  transform: translateY(-8px) scale(.98);
-  opacity: 0; pointer-events: none;
-  transition: transform .24s cubic-bezier(.22,.61,.36,1), opacity .24s ease;
-}
-.nyca-menu.is-open{
-  transform: translateY(0) scale(1);
-  opacity: 1; pointer-events: auto;
-}
-.nyca-menu-list{ list-style:none; margin:0; padding:10px }
-.nyca-menu-list li{ margin: 0; }
-.nyca-menu-list a{
-  display:block; padding:14px 16px; border-radius: 12px;
-  font-weight:800; color: var(--ink);
-}
-.nyca-menu-list a:hover{
-  background: #eef1f6;
-}
-
-.nyca-overlay{
-  position: fixed; inset: 0; background: rgba(15,18,32,.32);
-  backdrop-filter: blur(2px);
-  z-index: 20; opacity: 0; pointer-events: none;
-  transition: opacity .24s ease;
-}
-.nyca-overlay.is-open{
-  opacity: 1; pointer-events: auto;
-}
-
-/* 햄버거 → X 애니메이션 */
-.nyca-menu-btn{position:relative}
-.nyca-menu-btn span{transition: transform .24s ease, opacity .2s ease}
-.nyca-menu-btn.is-open span:nth-child(1){transform: translateY(10px) rotate(45deg)}
-.nyca-menu-btn.is-open span:nth-child(2){opacity:0}
-.nyca-menu-btn.is-open span:nth-child(3){transform: translateY(-10px) rotate(-45deg)}
-
-/* 접근성: 애니메이션 최소화 선호 */
-@media (prefers-reduced-motion: reduce){
-  .nyca-menu, .nyca-overlay, .nyca-menu-btn span{transition: none}
-}
-
-/* Select box style */
-select.input {
-  appearance:none;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' stroke='%239198a6' stroke-width='2' viewBox='0 0 24 24'%3E<path d='M6 9l6 6 6-6'/></svg>");
-  background-repeat:no-repeat;
-  background-position:right 12px center;
-  background-size:16px;
-  cursor:pointer;
-}
-
-/* ==== Brand (logo only) ==== */
-.brand {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-decoration: none;
-  padding: 0;
-  margin: 0;
-}
-
-.brand-mark {
-  height: 200px;                 /* ← 실제 크기 2배 확대 */
-  width: auto;
-  object-fit: contain;
-  display: block;
-  transition: transform 0.3s ease, opacity 0.3s ease;
-}
-
-.brand:hover .brand-mark {
-  transform: scale(1.05);
-  opacity: 0.9;
-}
-
-/* 반응형 대응 */
-@media (max-width: 480px) {
-  .brand-mark {
-    height: 60px;               /* 모바일에서는 살짝 줄이기 */
-  }
-}
-
-/* ======= Mobile-first fold fit ======= */
-:root{
-  --header-h: 64px;          /* 헤더 고정 높이(필요 시 조정) */
-}
-
-/* 헤더가 너무 커서 컨텐츠가 밀리는 것 방지 */
-.nyca-header{ height: var(--header-h); }
-
-/* 섹션 여백 축소 */
-.section, .container, main{ padding-top: 8px; padding-bottom: 16px; }
-
-/* '현재 상영중' 같은 큰 제목 축소 & 반응형 */
-.h-hero, .h-title-xxl{
-  font-size: clamp(24px, 7.5vw, 44px);
-  letter-spacing: .5px;
-  margin: 8px 0 12px;
-  line-height: 1.1;
-}
-.h-eyebrow{ font-size: clamp(14px, 3.5vw, 18px); }
-
-/* 포스터 카드가 한 화면에 들어오도록: 높이 상한 + 비율 유지  */
-.movie-card{ max-width: 440px; margin: 0 auto; }
-.movie-poster{
-  width: 100%;
-  max-height: min(65vh, 620px);  /* ← 핵심: 화면의 65%를 넘지 않게 */
-  object-fit: contain;           /* 전부 보이게(잘림 방지). 꽉 채우려면 cover */
-  display: block;
-  border-radius: 14px;
-  box-shadow: 0 6px 24px rgba(0,0,0,.12);
-}
-
-/* 제목/버튼 등 첫 화면(1st fold)에 맞추기 */
-.fold{
-  min-height: calc(100dvh - var(--header-h));
-  display: grid;
-  grid-template-rows: auto 1fr auto;
-  gap: 10px;
-}
-
-/* CTA 버튼이 너무 커지지 않도록 */
-.btn-cta{
-  height: 54px;
-  font-size: clamp(16px, 4.2vw, 20px);
-}
-
-/* ===== Ticket Detail — legacy design ===== */
-.ticket-hero {
-  position: relative;
-  height: 48dvh;
-  min-height: 260px;
-  max-height: 520px;
-  background: #111;
-  overflow: hidden;
-}
-.ticket-hero img {
-  width: 100%; height: 100%;
-  object-fit: cover; opacity: .45; filter: saturate(105%);
-}
-.ticket-hero .title-wrap{
-  position: absolute; left: 20px; bottom: 16px; right: 20px;
-  color: #fff;
-}
-.ticket-hero .eyebrow{font-size: 14px; opacity: .85; margin: 0 0 4px;}
-.ticket-hero .title{
-  font-size: clamp(32px, 9.5vw, 56px);
-  font-weight: 900; letter-spacing:.5px; margin:0;
-}
-.ticket-hero .badge-like{
-  position:absolute; right: 16px; top: 16px;
-  display:flex; align-items:center; gap:8px; color:#fff;
-  background: rgba(0,0,0,.35); padding:6px 10px; border-radius: 999px;
-  font-weight:700;
-}
-
-/* White sheet */
-.ticket-sheet{
-  position: relative; margin-top: -22px;
-  background:#fff; border-radius: 22px 22px 10px 10px;
-  box-shadow: 0 10px 30px rgba(0,0,0,.12);
-  padding: 18px 16px 24px; max-width: 880px; margin-left: auto; margin-right:auto;
-}
-.sheet-head{
-  display:flex; align-items:flex-start; justify-content:space-between; gap:10px;
-}
-.sheet-head .sheet-title{
-  font-size: clamp(28px, 8vw, 48px);
-  font-weight: 900; margin: 0; color:#2b2b34;
-}
-.sheet-head .type-chip{
-  font-weight:800; font-size:14px; padding:6px 10px; border-radius: 999px;
-  color:#fff; letter-spacing:.3px;
-}
-.type-red{ background:#3a3946;}
-.type-gold{ background:#a8863a;}
-.type-prime{ background:linear-gradient(135deg, #88e 0%, #7de 40%, #e6a 100%); }
-
-.kv{ display:grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 10px;}
-.kv .item b{ display:block; font-size:13px; color:#666; margin-bottom:4px;}
-.kv .item span{ font-size:16px; font-weight:700; color:#222;}
-@media (max-width: 540px){ .kv{ grid-template-columns:1fr; } }
-
-.divider{ height:1px; background:#eee; margin: 14px 0; }
-
-.actions{ display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-top:6px; }
-.btn-x{
-  appearance:none; border:0; border-radius:14px; padding:16px 14px;
-  font-weight:800; font-size:16px; cursor:pointer; text-align:center;
-}
-.btn-dark{ background:#3a3946; color:#fff; }
-.btn-soft{ background:#f2f2f4; color:#2b2b34; }
-.btn-danger{ background:#2b2b34; color:#fff; }
-.btn-block{ grid-column: 1 / -1; height:auto; font-size:18px; padding:18px; }
-
-.meta-eyebrow{
-  display:flex; align-items:center; gap:10px; font-weight:900; color:#2b2b34;
-}
-.meta-line{ height:2px; background:#2b2b34; flex:1; opacity:.18; }
-
-/* ticket sticker */
-.sticker{
-  position:absolute; left: 16px; top: -22px;
-  transform: rotate(-8deg);
-  background:#ef476f; color:#fff; font-weight:900;
-  padding:8px 14px; border-radius:10px; box-shadow:0 10px 18px rgba(0,0,0,.12);
-}
-.sticker.gold{ background:#d6b35e; color:#1b1b1b; }
-.sticker.prime{
-  background:linear-gradient(135deg, #8ef 0%, #baf 50%, #f9a 100%); color:#1b1b1b;
-}
-
-/* small helpers */
-.muted{ color:#666; }
-.center{ text-align:center; }
-
-/* ===== Global modal (blurred backdrop) ===== */
-.nyca-modal-overlay{
-  position: fixed; inset: 0; display: none; z-index: 1200;
-}
-.nyca-modal-overlay.show{ display:block; }
-.nyca-modal-backdrop{
-  position:absolute; inset:0;
-  background: rgba(20,22,30,.35);
-  backdrop-filter: blur(6px);
-  opacity:0; transition: opacity .18s ease;
-}
-.nyca-modal-overlay.show .nyca-modal-backdrop{ opacity:1; }
-.nyca-modal{
-  position: relative; z-index:1;
-  width: min(440px, 92vw);
-  margin: 12vh auto 0; padding: 18px 16px 14px;
-  border-radius: 16px; background:#111827; color:#fff;
-  box-shadow: 0 20px 50px rgba(0,0,0,.25);
-  transform: translateY(12px); opacity:.0; transition: all .18s ease;
-}
-.nyca-modal-overlay.show .nyca-modal{
-  transform: translateY(0); opacity:1;
-}
-.nyca-modal h3{ margin:0 0 8px; font-size:18px; font-weight:800;}
-.nyca-modal p{ margin:8px 0 16px; color:#d1d5db; line-height:1.5; }
-.nyca-modal .actions{ display:flex; gap:10px; justify-content:flex-end; }
-.nyca-btn{ appearance:none; border:0; border-radius:12px; padding:12px 14px; font-weight:800; cursor:pointer; }
-.nyca-btn.gray{ background:#e5e7eb; color:#111827; }
-.nyca-btn.dark{ background:#2f3140; color:#fff; }
-body.modal-open{ overflow:hidden; }
-
-/* ===== Ticket Detail – 버튼을 스샷처럼 카드형으로 ===== */
-
-/* 버튼 묶음: 2열 그리드 */
-.t-actions{
-  display:grid;
-  grid-template-columns: 1fr 1fr;  /* 예약 취소 / 영화 정보 */
-  gap:14px;
-  margin-top:8px;
-}
-
-/* 기본 알약 버튼 (카드처럼) */
-.pill{
-  appearance:none; border:0;
-  width:100%;
-  padding:16px 14px;
-  border-radius:16px;
-  font-weight:800; font-size:16px;
-  text-align:center; cursor:pointer;
-  transition:transform .12s ease, box-shadow .12s ease, background .12s ease;
-}
-
-/* 연한 카드(스크린샷 느낌) */
-.pill-soft{
-  background:#f3f4f6;                /* 밝은 회색 */
-  color:#1f2937;                      /* 진회색 텍스트 */
-  box-shadow: inset 0 -1px 0 rgba(0,0,0,.03), 0 1px 0 rgba(0,0,0,.02);
-}
-.pill-soft:hover{ background:#eef0f4; transform: translateY(-1px); }
-
-/* 진한 CTA 버튼 (홈으로) */
-.pill-dark{
-  background: var(--brand);           /* #2b2e3e 계열 */
-  color:#fff;
-  box-shadow: 0 6px 16px rgba(0,0,0,.12);
-}
-.pill-dark:hover{ transform: translateY(-1px); }
-
-/* 홈 버튼은 전체 가로(2칸) 차지 */
-.cta-full{ grid-column: 1 / -1; }
-
-/* 시트 여백/분리감 조금 더 */
-.ticket-sheet{ padding-bottom: 20px; }
-.divider{ height:1px; background:#eef0f4; margin: 16px 0 10px; }
-
-/* 상단 히어로 가독성(사진 위 텍스트) */
-.ticket-hero::after{
-  content:""; position:absolute; inset:0;
-  background: linear-gradient(to bottom, rgba(0,0,0,.45), rgba(0,0,0,.20) 42%, rgba(0,0,0,0));
-  pointer-events:none;
-}
-
-/* Form fields */
-.field { display:flex; flex-direction:column; gap:8px; }
-.field .label { font-weight:800; color:#2f3141; font-size:15px; }
-.help { color:#6b7280; font-size:13px; margin-top:6px; }
-
-/* Autofill 색 보정(크롬) */
-.input:-webkit-autofill,
-.input:-webkit-autofill:hover,
-.input:-webkit-autofill:focus {
-  -webkit-text-fill-color: #111;
-  -webkit-box-shadow: 0 0 0px 1000px #fff inset;
-  box-shadow: 0 0 0px 1000px #fff inset;
-  caret-color:#111;
-}
