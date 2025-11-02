@@ -1,5 +1,5 @@
 # app.py
-from flask import Flask, render_template, request, redirect, url_for, flash, session, current_app
+from flask import Flask, render_template, request, redirect, url_for, flash, session, current_app, Response
 from datetime import datetime
 import os, sqlite3, uuid, time
 from functools import wraps
@@ -15,10 +15,44 @@ except Exception:
     APP_TZ = None
 
 # -----------------------------
-# 공용 유틸 (current_app 기반으로 DB 경로 사용)
+# 공용 유틸
 # -----------------------------
-
 TYPE_CODE = {"normal": "1", "group": "2", "teacher": "3"}
+
+def now_iso():
+    return (datetime.now(APP_TZ) if APP_TZ else datetime.now()).isoformat()
+
+def db():
+    """현재 앱 설정의 DB_PATH를 사용."""
+    db_path = current_app.config.get("DB_PATH", os.path.join(current_app.instance_path, "cinema.db"))
+    conn = sqlite3.connect(db_path)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+def ensure_kv_table():
+    with db() as conn:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS settings (
+                key   TEXT PRIMARY KEY,
+                value TEXT
+            )
+        """)
+
+def set_setting(key, value):
+    ensure_kv_table()
+    with db() as conn:
+        conn.execute("""
+            INSERT INTO settings(key, value)
+            VALUES(?, ?)
+            ON CONFLICT(key) DO UPDATE SET value=excluded.value
+        """, (key, value))
+        conn.commit()
+
+def get_setting(key, default=None):
+    ensure_kv_table()
+    with db() as conn:
+        row = conn.execute("SELECT value FROM settings WHERE key=?", (key,)).fetchone()
+        return row[0] if row else default
 
 def make_ticket_id(rtype: str, date_str: str, student_id: str | None) -> str:
     """
@@ -30,10 +64,9 @@ def make_ticket_id(rtype: str, date_str: str, student_id: str | None) -> str:
     code = TYPE_CODE.get((rtype or "").lower(), "9")
     try:
         dt = datetime.strptime(date_str, "%Y-%m-%d")
-        yy = dt.strftime("%y")       # 25
-        mmdd = dt.strftime("%m%d")   # 1102
+        yy = dt.strftime("%y")
+        mmdd = dt.strftime("%m%d")
     except Exception:
-        # date_str가 예상치 못한 형식일 때의 안전장치
         parts = (date_str or "").split("-")
         yy = (parts[0][-2:] if len(parts) > 0 else "00")
         mm = (parts[1] if len(parts) > 1 else "00").zfill(2)
@@ -43,7 +76,6 @@ def make_ticket_id(rtype: str, date_str: str, student_id: str | None) -> str:
     tail = "" if (rtype == "teacher" or not student_id) else str(student_id)
     base = f"{code}{yy}{mmdd}{tail}"
 
-    # 중복 방지: 이미 있으면 뒤에 -1, -2 ... 를 붙임
     candidate = base
     n = 1
     with db() as conn:
@@ -53,35 +85,20 @@ def make_ticket_id(rtype: str, date_str: str, student_id: str | None) -> str:
     return candidate
 
 def normalize_member_names(raw: str) -> str:
-    """
-    입력: '홍길동, 김철수\n이영희' 같이 섞여 올 수 있음
-    출력: '홍길동,김철수,이영희' (공백 제거, 빈 항목 제거)
-    """
+    """ '홍길동, 김철수\n이영희' → '홍길동,김철수,이영희' """
     if not raw:
         return ""
     parts = []
-    for sep_split in raw.replace("\r", "").replace("\t", " ").split("\n"):
-        for p in sep_split.split(","):
+    for line in raw.replace("\r", "").split("\n"):
+        for p in line.split(","):
             name = p.strip()
             if name:
                 parts.append(name)
-    # 중복 제거(입력 편의), 순서 유지
-    seen = set()
-    uniq = []
+    seen, uniq = set(), []
     for n in parts:
         if n not in seen:
             uniq.append(n); seen.add(n)
     return ",".join(uniq)
-
-def now_iso():
-    return (datetime.now(APP_TZ) if APP_TZ else datetime.now()).isoformat()
-
-def db():
-    """현재 앱 설정의 DB_PATH를 사용."""
-    db_path = current_app.config.get("DB_PATH", os.path.join(current_app.instance_path, "cinema.db"))
-    conn = sqlite3.connect(db_path)
-    conn.row_factory = sqlite3.Row
-    return conn
 
 def init_db():
     """필요 테이블 생성/마이그레이션."""
@@ -106,14 +123,18 @@ def init_db():
             created_at TEXT NOT NULL
         );
         """)
+
         def ensure_col(table, col, coltype):
             try:
                 conn.execute(f"ALTER TABLE {table} ADD COLUMN {col} {coltype}")
             except sqlite3.OperationalError:
                 pass
-        ensure_col("tickets","status","TEXT NOT NULL DEFAULT 'pending'")
-        ensure_col("tickets","student_id","TEXT")
-        ensure_col("tickets","student_name","TEXT")
+
+        # 추가 칼럼 보강
+        ensure_col("tickets", "status", "TEXT NOT NULL DEFAULT 'pending'")
+        ensure_col("tickets", "student_id", "TEXT")
+        ensure_col("tickets", "student_name", "TEXT")
+        ensure_col("tickets", "member_names", "TEXT")  # 단체 인원 이름 저장
 
         conn.execute("""
         CREATE TABLE IF NOT EXISTS schedule (
@@ -133,16 +154,25 @@ def init_db():
             poster TEXT
         );
         """)
-        ensure_col("movies","rating","TEXT")
-        ensure_col("movies","duration","INTEGER")
-        ensure_col("movies","genre","TEXT")
-        ensure_col("movies","poster","TEXT")
+
+        ensure_col("movies", "rating", "TEXT")
+        ensure_col("movies", "duration", "INTEGER")
+        ensure_col("movies", "genre", "TEXT")
+        ensure_col("movies", "poster", "TEXT")
+
+def _iter_base_movies():
+    # BASE_MOVIES가 list/dict 모두 안전하게 처리
+    if isinstance(BASE_MOVIES, dict):
+        return BASE_MOVIES.values()
+    return BASE_MOVIES
 
 def load_all_movies():
     with db() as conn:
         rows = conn.execute("SELECT * FROM movies ORDER BY title").fetchall()
     added = [dict(r) for r in rows]
-    base_map = {m["id"]: m for m in BASE_MOVIES}
+    base_map = {}
+    for m in _iter_base_movies():
+        base_map[m["id"]] = m
     for m in added:
         base_map[m["id"]] = m
     return list(base_map.values())
@@ -170,10 +200,7 @@ def has_column(conn: sqlite3.Connection, table: str, col: str) -> bool:
     return any(r[1] == col for r in rows)  # r[1] = column name
 
 def get_movie_schedule(movie_id: str):
-    """
-    schedule 테이블에서 해당 영화의 상영일정 목록을 가져온다.
-    테이블/컬럼이 없으면 빈 목록 반환(안전).
-    """
+    """현재 스키마엔 movie_id가 없으므로, 예외 시 빈 리스트 반환."""
     try:
         with db() as conn:
             cur = conn.execute("""
@@ -187,21 +214,23 @@ def get_movie_schedule(movie_id: str):
         print("[get_movie_schedule] warn:", e)
         return []
 
+# 규정 기본값
+DEFAULT_RULES_DOC = """여기에 현재 쓰고 있는 규정 전문 전체를 그대로 붙여놓으세요.
+(처음 1회만 DB에 복사되고, 이후엔 관리자 화면에서 수정)"""
+
 # -----------------------------
 # Flask 애플리케이션 생성 (앱 팩토리)
 # -----------------------------
 def create_app():
     app = Flask(__name__, template_folder="templates", static_folder="static")
-    # 시크릿/관리자 비밀번호 환경변수 허용
     app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-nnhs-cinema")
     app.config["ADMIN_PASSWORD"] = os.environ.get("ADMIN_PASSWORD", "nnhs2025!")
     app.config["TEACHER_PASSCODE"] = os.environ.get("TEACHER_PASSCODE", "namnyeong123")
 
-    # instance 폴더 및 DB 경로 보장
     Path(app.instance_path).mkdir(parents=True, exist_ok=True)
     app.config["DB_PATH"] = os.path.join(app.instance_path, "cinema.db")
 
-    # Jinja/컨텍스트
+    # 필터/컨텍스트
     @app.template_filter("badge_status")
     def badge_status(s):
         return {"pending":"대기","approved":"승인","rejected":"거절"}.get(s,s)
@@ -215,24 +244,36 @@ def create_app():
             get_movie=get_movie, poster_or_placeholder=poster_or_placeholder
         )
 
-    # --------- 가드/미들웨어 ----------
+    # 미들웨어
     @app.before_request
     def _normalize_params_and_protect():
         if request.endpoint == "tickets":
             tab = (request.args.get("tab") or "normal").lower()
-            if tab not in BOOK_TYPES:
+            if tab not in [t.lower() for t in BOOK_TYPES]:
                 args = request.args.to_dict(flat=True); args["tab"]="normal"
                 return redirect(url_for("tickets", **args))
         if request.path.startswith("/reserve/teacher"):
             if not session.get("teacher_authenticated"):
                 next_url = request.full_path if request.query_string else request.path
                 return redirect(url_for("teacher_login", next=next_url))
-        if request.path == "/reserve" and (request.args.get("rtype") or "").lower() == "teacher":
-            if not session.get("teacher_authenticated"):
-                next_url = request.full_path if request.query_string else request.path
-                return redirect(url_for("teacher_login", next=next_url))
+        # 규정/개인정보 동의가 필요할 때 reserve 접근을 rules로 유도
+        if request.endpoint == "reserve" and request.method == "GET":
+            rtype = request.view_args.get("rtype") if request.view_args else (request.args.get("rtype") or "normal")
+            if not session.get("agreed_rules"):
+                return redirect(url_for("rules", rtype=rtype))
+            if not session.get("agreed_privacy"):
+                return redirect(url_for("privacy_agree", rtype=rtype))
 
-    # --------- 권한/데코레이터 ----------
+    # 권한
+    def admin_required(fn):
+        @wraps(fn)
+        def wrapper(*args, **kwargs):
+            if not session.get("is_admin"):
+                flash("관리자 로그인이 필요합니다.", "error")
+                return redirect(url_for("admin_login", next=request.path))
+            return fn(*args, **kwargs)
+        return wrapper
+
     def teacher_required(view_func):
         @wraps(view_func)
         def wrapped(*args, **kwargs):
@@ -243,15 +284,7 @@ def create_app():
             return view_func(*args, **kwargs)
         return wrapped
 
-    def admin_required(fn):
-        @wraps(fn)
-        def wrapper(*args, **kwargs):
-            if not session.get("is_admin"):
-                return redirect(url_for("admin_login"))
-            return fn(*args, **kwargs)
-        return wrapper
-
-    # --------- 라우트 ----------
+    # --------- 공용 라우트 ----------
     @app.route("/healthz")
     def healthz():
         return "ok", 200
@@ -296,7 +329,7 @@ def create_app():
         featured = movies[0] if movies else None
         return render_template("home.html", movies=movies, featured=featured)
 
-    # 🔧 템플릿 호환용 'index' 별칭 추가 (url_for('index') 지원)
+    # url_for('index') 호환
     app.add_url_rule("/", endpoint="index", view_func=home)
 
     @app.route("/booking", endpoint="booking_mode")
@@ -304,48 +337,85 @@ def create_app():
         movie_id = request.args.get("movieId", "")
         return render_template("booking.html", movie_id=movie_id, movies=load_all_movies())
 
-    @app.route("/consent", methods=["GET", "POST"])
-    def consent():
-        next_url = request.args.get("next") or url_for("home")
+    # --------- 규정/개인정보 동의 + 규정 조회/편집 ----------
+    @app.route("/rules", methods=["GET", "POST"], endpoint="rules")
+    def rules():
+        rtype = (request.values.get("rtype") or "normal").lower()
+        text = get_setting("rules_doc", DEFAULT_RULES_DOC)
         if request.method == "POST":
-            agreed = (request.form.get("agree") == "on")
-            if not agreed:
-                flash("동의해야 예약을 진행할 수 있습니다.", "error")
-                return redirect(url_for("consent", next=next_url))
-            session["consent"] = True
-            return redirect(next_url)
-        return render_template("consent.html", next_url=next_url)
+            if request.form.get("agree") == "yes":
+                session["agreed_rules"] = True
+                return redirect(url_for("privacy_agree", rtype=rtype))
+            flash("규정에 동의해야 진행 가능합니다.", "error")
+        return render_template("rules.html", text=text, rtype=rtype)
 
+    @app.route("/privacy_agree", methods=["GET", "POST"], endpoint="privacy_agree")
+    def privacy_agree():
+        rtype = (request.values.get("rtype") or "normal").lower()
+        if request.method == "POST":
+            if request.form.get("agree") == "yes":
+                session["agreed_privacy"] = True
+                return redirect(url_for("reserve", rtype=rtype))
+            flash("개인정보 수집·이용에 동의해야 예약을 진행할 수 있습니다.", "error")
+        return render_template("privacy_agree.html", rtype=rtype)
+
+    @app.route("/rules/doc", methods=["GET"], endpoint="rules_doc")
+    def rules_doc():
+        rtype = request.args.get("rtype", "normal")
+        text = get_setting("rules_doc", DEFAULT_RULES_DOC)
+        return render_template("rules_doc.html", text=text, rtype=rtype)
+
+    @app.route("/rules/download", methods=["GET"], endpoint="rules_download")
+    def rules_download():
+        text = get_setting("rules_doc", DEFAULT_RULES_DOC)
+        return Response(
+            text,
+            mimetype="text/plain; charset=utf-8",
+            headers={"Content-Disposition": "attachment; filename=nyca_rules.txt"}
+        )
+
+    @app.route("/admin/rules", methods=["GET", "POST"], endpoint="admin_rules_edit")
+    @admin_required
+    def admin_rules_edit():
+        if request.method == "POST":
+            text = (request.form.get("rules_text") or "").strip()
+            if not text:
+                flash("규정 내용이 비어 있습니다.", "error")
+                return redirect(request.url)
+            set_setting("rules_doc", text)
+            flash("규정이 저장되었습니다.", "ok")
+            return redirect(url_for("rules_doc"))
+        text = get_setting("rules_doc", DEFAULT_RULES_DOC)
+        return render_template("admin/rules_edit.html", text=text)
+
+    # --------- 예약 ----------
     @app.route("/reserve/<rtype>", methods=["GET", "POST"], endpoint="reserve")
     def reserve(rtype: str):
         rtype = (rtype or "").lower()
-        if rtype not in BOOK_TYPES:
+        allowed = [t.lower() for t in BOOK_TYPES]
+        if rtype not in allowed:
             flash("잘못된 예약 유형입니다.", "error")
             return redirect(url_for("booking_mode"))
 
-        # 교사 예약 접근 제어
         if rtype == "teacher" and not session.get("teacher_authenticated"):
             flash("교사 전용 예약입니다. 인증해 주세요.", "error")
             next_url = request.full_path if request.query_string else request.path
             return redirect(url_for("teacher_login", next=next_url))
 
-        # 영화 선택
         movie_id = request.args.get("movieId") or request.form.get("movie_id")
         all_movies = load_all_movies()
         if not movie_id:
             movie_id = all_movies[0]["id"] if all_movies else None
         movie = get_movie(movie_id) if movie_id else None
 
-        # 스케줄 존재 확인
         sched = get_schedule_dates()
         if not sched:
             flash("현재 예약 가능한 날짜가 없습니다. (관리자에게 문의)", "error")
             return redirect(url_for("booking_mode"))
 
-        # POST 처리(예약 생성)
         if request.method == "POST":
             form = request.form.to_dict(flat=True)
-            # 공통
+
             date = (form.get("date") or "").strip()
             if not date:
                 flash("날짜를 선택하세요.", "error")
@@ -359,9 +429,14 @@ def create_app():
             time_ = sche["time"]
             hall = sche["hall"]
 
-            # 일반/단체/교사별 필드
             student_id = (form.get("student_id") or "").strip()
             student_name = (form.get("student_name") or "").strip()
+
+            group_name = None
+            group_size = None
+            member_names = ""
+            teacher_name = None
+            class_info = None
 
             if rtype == "normal":
                 if not student_id:
@@ -377,27 +452,25 @@ def create_app():
                     group_size = int(form.get("group_size", "0"))
                 except Exception:
                     group_size = 0
-                # 대표자(선택: 기존 student_id/name 사용) — 없으면 경고 없이 진행
-                member_names_raw = form.get("member_names", "")
-                member_names = normalize_member_names(member_names_raw)
+                # 2명 이상 제한
+                if not group_name or group_size < 2:
+                    flash("단체명과 2명 이상의 인원을 입력하세요.", "error")
+                    return redirect(request.url)
+                member_names = normalize_member_names(form.get("member_names", ""))
+
             else:  # teacher
                 teacher_name = (form.get("teacher_name") or "").strip()
                 class_info = (form.get("class_info") or "").strip()
                 if not teacher_name:
                     flash("담당 교사 성함을 입력하세요.", "error")
                     return redirect(request.url)
-                # 교사 예약은 학번/이름 필수 아님
-                if not student_id:
-                    student_id = None
-                if not student_name:
-                    student_name = None
+                # 교사용은 학번/이름 없어도 OK
+                if not student_id: student_id = None
+                if not student_name: student_name = None
 
             status = "approved" if rtype == "normal" else "pending"
-
-            # 규칙 기반 예약 ID
             t_id = make_ticket_id(rtype, date, student_id if rtype != "teacher" else None)
 
-            # INSERT 준비
             with db() as conn:
                 cols = [
                     "id", "type", "movie_id", "movie_title", "date", "time", "hall",
@@ -407,41 +480,21 @@ def create_app():
                 vals = [
                     t_id, rtype, movie["id"] if movie else None, movie["title"] if movie else None,
                     date, time_, hall,
-                    None, None, None, None,  # group/teacher는 아래에서 덮어씀
+                    group_name, group_size, teacher_name, class_info,
                     student_id, student_name, status, now_iso()
                 ]
 
-                # 타입별 추가/치환
-                if rtype == "group":
-                    # group_name, group_size 채우기
-                    vals[7] = group_name
-                    vals[8] = group_size
-                    # member_names 컬럼이 있으면 추가
-                    if has_column(conn, "tickets", "member_names"):
-                        cols.insert(11, "member_names")  # student_id 위치 앞에 끼워넣음
-                        vals.insert(11, member_names)
+                # 단체 인원 이름(member_names) 칼럼이 있으면 같이 저장
+                if rtype == "group" and has_column(conn, "tickets", "member_names"):
+                    cols.insert(12, "member_names")   # student_id 앞에 삽입
+                    vals.insert(12, member_names)
 
-                elif rtype == "teacher":
-                    # teacher_name, class_info 채우기
-                    vals[9] = teacher_name
-                    vals[10] = class_info
-                    # 교사는 student_id/name 없어도 됨(위에서 None 처리)
-
-                # 동적 SQL
                 q_marks = ",".join(["?"] * len(cols))
-                sql = f"INSERT INTO tickets ({', '.join(cols)}) VALUES ({q_marks})"
-                conn.execute(sql, tuple(vals))
+                conn.execute(f"INSERT INTO tickets ({', '.join(cols)}) VALUES ({q_marks})", tuple(vals))
 
             return redirect(url_for("ticket_detail", tid=t_id))
 
-        # GET 렌더
-        return render_template(
-            "reserve.html",
-            rtype=rtype,
-            movie=movie,
-            movies=all_movies,
-            schedule=sched
-        )
+        return render_template("reserve.html", rtype=rtype, movie=movie, movies=all_movies, schedule=sched)
 
     @app.route("/reserve", methods=["GET"])
     def reserve_query_to_path():
@@ -453,6 +506,7 @@ def create_app():
             return redirect(url, code=302)
         return redirect(url_for("booking_mode"), code=302)
 
+    # --------- 티켓/목록 ----------
     @app.route("/ticket/<tid>", endpoint="ticket_detail")
     def ticket_detail(tid: str):
         with db() as conn:
@@ -461,7 +515,7 @@ def create_app():
             flash("티켓을 찾을 수 없습니다.", "error")
             return redirect(url_for("tickets"))
         return render_template("ticket_detail.html", t=row)
-    
+
     @app.route("/tickets", endpoint="tickets")
     def tickets():
         tab = (request.args.get("tab") or "normal").lower()
@@ -476,57 +530,40 @@ def create_app():
 
     @app.route("/tickets/<tid>/delete", methods=["POST","OPTIONS"])
     def ticket_delete(tid):
-        # CORS/OPTIONS 등은 기존 그대로…
-
         with db() as conn:
             conn.execute("DELETE FROM tickets WHERE id = ?", (tid,))
-
-        # where to go next
-        next_where = request.args.get("next", "").strip()
+        # next=home 이면 홈으로, 기본은 홈으로(요청대로)
+        next_where = request.args.get("next", "home").strip()
         if next_where == "home":
             return redirect(url_for("index")), 303
+        return redirect(url_for("index")), 303
 
-        # 기존 동작 유지(내 티켓 탭으로)
-        tab = request.args.get("tab", "all")
-        return redirect(url_for('index')), 303
-
+    # --------- 정보/영화/공지 ----------
     @app.route("/notices", endpoint="notices")
     def notices():
-        notes = ["안녕하십니까? 남녕고등학교 제40대 학생회장 이재권입니다. 우리 남녕고등학교는 1986년 설립되어 제주도, 더 나아가 대한민국에서 가장 훌륭한 학교 중 하나로 발전해 왔습니다. 제40대 학생자치회는 선배님들께서 다져 오신 유서 깊은 전통의 명맥을 이어 받아, 학생 모두가 자신의 빛을 발할 수 있도록 힘쓰겠습니다. 선두에 서서 학생들을 억지로 끌고 가는 것이 아니라, 맨 뒤에서 한 사람의 낙오도 발생하지 않도록 도와주는 든든한 모습으로 서 있겠습니다. 저희의 임기가 끝날 즈음, 모두에게 박수 받을 수 있도록 열심히 활동하는 제40대 학생자치회가 되겠습니다. 우리들은 긍지 높은 남녕인입니다."]
-        return render_template("notices.html", notices=notes)
-    
+        return render_template("notices.html")
+
     @app.route("/movie/<movie_id>", methods=["GET"], endpoint="movie_info")
     def movie_info(movie_id):
-        """
-        영화 정보 상세 페이지
-        """
         mv = get_movie(movie_id)
         if not mv:
             flash("영화 정보를 찾을 수 없습니다.", "error")
             return redirect(url_for("index"))
 
-        # 스케줄(있으면 표시, 없으면 빈 리스트)
         schedule = get_movie_schedule(movie_id)
-
-        # 안전한 키 접근을 위해 기본값 설정
         movie = {
             "id": mv.get("id"),
             "title": mv.get("title", "제목 미상"),
             "poster": mv.get("poster"),
             "genre": mv.get("genre", "-"),
             "rating": mv.get("rating", "-"),
-            "runtime": mv.get("runtime", "-"),
+            "runtime": mv.get("duration", mv.get("runtime", "-")),
             "summary": mv.get("summary") or mv.get("synopsis") or "줄거리 정보가 아직 없습니다.",
             "director": mv.get("director", "-"),
             "actors": mv.get("actors", []),
             "year": mv.get("year", ""),
         }
-
         return render_template("movie_info.html", movie=movie, schedule=schedule)
-
-    @app.route("/settings", endpoint="settings")
-    def settings_view():
-        return render_template("settings.html")
 
     @app.route("/info", endpoint="info")
     def info_view():
@@ -536,6 +573,7 @@ def create_app():
     def about():
         return render_template("about.html")
 
+    # --------- 관리자 ----------
     @app.route("/admin/login", methods=["GET","POST"])
     def admin_login():
         if request.method == "POST":
@@ -646,6 +684,7 @@ def create_app():
             conn.execute("DELETE FROM schedule WHERE date=?", (date,))
         flash("스케줄이 삭제되었습니다.", "ok"); return redirect(url_for("admin_schedule"))
 
+    # --------- 오류/도우미 ----------
     @app.errorhandler(404)
     def handle_404(e):
         try:
@@ -690,7 +729,9 @@ def create_app():
             def _render_reserve_normal():
                 ms=load_all_movies(); m=ms[0] if ms else {"id":"unknown","title":"알 수 없는 영화","genre":"-","rating":"-"}
                 render_template("reserve.html", rtype="normal", movie=m, movies=ms, schedule=get_schedule_dates())
-            check("render home.html", _render_home); check("render booking.html", _render_booking); check("render reserve.html(normal)", _render_reserve_normal)
+            check("render home.html", _render_home)
+            check("render booking.html", _render_booking)
+            check("render reserve.html(normal)", _render_reserve_normal)
         rows=[]
         for title,ok,msg in results:
             color="#16a34a" if ok else "#dc2626"
@@ -702,13 +743,15 @@ def create_app():
           <table border="1" cellpadding="6" cellspacing="0"><thead><tr><th>테스트</th><th>결과</th><th>메시지</th></tr></thead><tbody>{''.join(rows)}</tbody></table>
         </body></html>"""
 
-    # 앱 초기화 시 DB 테이블 준비
+    # 앱 초기화: DB/규정 기본값
     with app.app_context():
         init_db()
+        if get_setting("rules_doc") is None:
+            set_setting("rules_doc", DEFAULT_RULES_DOC)
 
     return app
 
-# 로컬 실행(Windows): flask dev 서버/Waitress에서 실행
+# 로컬 실행
 if __name__ == "__main__":
     app = create_app()
     print("\n=== URL MAP (dev) ===")
@@ -716,5 +759,4 @@ if __name__ == "__main__":
         methods = ",".join(sorted(rule.methods)) if rule.methods else ""
         print(f"{rule.endpoint:24s} {methods:10s} {rule}")
     print("===============\n")
-    # Windows에선 gunicorn 대신 아래 dev 서버 사용
     app.run(host="127.0.0.1", port=8000, debug=True)

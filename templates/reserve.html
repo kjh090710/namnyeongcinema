@@ -42,12 +42,12 @@
   <div class="stack">
     <label class="field">
       <span class="label">학년반번호</span>
-      <input type="text" name="student_id" class="input" placeholder="예: 10729" required>
+      <input type="text" name="student_id" class="input" placeholder="예: 10709" required>
     </label>
 
     <label class="field">
       <span class="label">이름</span>
-      <input type="text" name="student_name" class="input" placeholder="예: 홍길동" required>
+      <input type="text" name="student_name" class="input" placeholder="예: 김소영" required>
     </label>
   </div>
 
@@ -61,7 +61,7 @@
 
     <label class="field">
       <span class="label">대표자 이름</span>
-      <input type="text" name="student_name" class="input" placeholder="예: 홍길동" required>
+      <input type="text" name="student_name" class="input" placeholder="예: 강준환" required>
     </label>
 
     <label class="field">
@@ -70,9 +70,9 @@
     </label>
 
     <label class="field">
-    <label class="k" for="companions">동반자 학번/이름</label>
+    <span class="label">동반자 학번</span>
     <textarea id="companions" name="companions" class="input" rows="5"
-      placeholder="예: 10202, 21026, 21210, 31119 …&#10;쉼표(,), 공백, 줄바꿈으로 구분하세요. 대표자는 제외하고 입력"></textarea>
+      placeholder="예: 10709, 21026, 21210 …&#10;쉼표(,), 공백, 줄바꿈으로 구분하세요. 대표자는 제외하고 입력"></textarea>
 
     <small class="help" id="groupCount">
       * 총 인원은 ‘대표자 1명 + 동반자 수’로 자동 계산됩니다 (단체는 2명 이상).
@@ -92,11 +92,6 @@
       <span class="label">담당 과목</span>
       <input type="text" name="class_info" class="input" placeholder="예: 영어" required>
     </label>
-
-    <div class="checkbox">
-      <input id="saveInfo" type="checkbox" name="remember" value="1">
-      <label for="saveInfo">내 정보 저장하기</label>
-    </div>
   </div>
   {% endif %}
 

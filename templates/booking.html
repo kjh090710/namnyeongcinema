@@ -5,13 +5,13 @@
   <h1 class="h-title-xxl">라라랜드</h1>
 
   <a class="booking-btn booking-normal"
-     href="{{ url_for('reserve', rtype='normal', movieId=request.args.get('movieId','')) }}">일반예약</a>
+     href="{{ url_for('privacy_agree', rtype='normal') }}">일반예약</a>
 
   <a class="booking-btn booking-gray"
-     href="{{ url_for('reserve', rtype='group', movieId=request.args.get('movieId','')) }}">단체예약</a>
+     href="{{ url_for('privacy_agree', rtype='group') }}">단체예약</a>
 
   <a class="booking-btn booking-gray"
-     href="{{ url_for('reserve', rtype='teacher', movieId=request.args.get('movieId','')) }}">
+      href="{{ url_for('privacy_agree', rtype='teacher') }}">
      교사예약 <span class="ribbon">PRIME</span>
   </a>
 

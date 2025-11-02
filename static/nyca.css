@@ -63,6 +63,7 @@ img{max-width:100%;height:auto;display:block}
 /* ===== Card ===== */
 .card{background:var(--surface);border-radius:var(--radius-lg);box-shadow:var(--shadow);padding:32px}
 .card-soft{background:#f8f9fb;border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px}
+.card-no{padding:24px}
 
 /* ===== Inputs ===== */
 .field{display:flex;flex-direction:column;gap:8px}

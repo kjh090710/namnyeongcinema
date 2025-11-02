@@ -1,14 +1,17 @@
 
 ```bash
-
-
-
 Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
 python -m venv .venv
 . .venv/Scripts/Activate.ps1
 pip install -r requirements.txt
 pip install flask python-dotenv
 python app.py
+```
+
+```bash
+git add -A
+git commit -m "reupload: all project files -v"
+git push origin main --force
 ```
 
 
