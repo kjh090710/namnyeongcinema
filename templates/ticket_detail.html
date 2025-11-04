@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block content %}
+{% set movie = get_movie(t['movie_id']) %}
+{% set ticket_type = t['type'] %}
+{% set is_group = ticket_type == 'group' %}
+{% set is_teacher = ticket_type == 'teacher' %}
+{% set is_normal = ticket_type == 'normal' %}
+
+<section class="ticket-hero">
+  <img src="{{ (movie['poster'] if movie and movie.get('poster') else url_for('static', filename='images/poster-placeholder.jpg')) }}"
+       alt="{{ movie['title'] if movie else '영화' }}">
+  <div class="title-wrap">
+    <p class="eyebrow">화면을 캡쳐하여 상영관 입장 시 보여주세요.</p>
+    <h1 class="title">{{ movie['title'] if movie else '' }}</h1>
+  </div>
+</section>
+
+<article class="ticket-sheet">
+  {% if is_normal %}
+    <div class="sticker">TICKET</div>
+  {% elif is_group %}
+    <div class="sticker gold">TICKET</div>
+  {% else %}
+    <div class="sticker prime">PRIME</div>
+  {% endif %}
+
+  <header class="sheet-head">
+    <h2 class="sheet-title">{{ movie['title'] if movie else '' }}</h2>
+    <span class="type-chip {% if is_normal %}type-red{% elif is_group %}type-gold{% else %}type-prime{% endif %}">
+      {% if is_normal %}Red(일반){% elif is_group %}Gold(단체){% else %}Prime(교사){% endif %}
+    </span>
+  </header>
+
+  <div class="kv" style="margin-top:12px">
+    {% if is_group %}
+      <div class="item"><b>호스트</b><span>{{ t['student_id'] }} {{ t['student_name'] }}</span></div>
+    {% elif is_normal %}
+      <div class="item"><b>예약자</b><span>{{ t['student_id'] }} {{ t['student_name'] }}</span></div>
+    {% endif %}
+
+    {% if is_group and t['member_names'] %}
+      <div class="divider"></div>
+      <div class="stack">
+        <b class="k">동반자 명단 ({{ (t['group_size'] or 1) - 1 }}명)</b>
+        <div class="card-soft" style="white-space:pre-line">
+          {{ t['member_names'] }}
+        </div>
+      </div>
+    {% endif %}
+
+    <div class="item"><b>상영날짜</b><span>{{ t['date'] }}</span></div>
+    <div class="item"><b>예약번호</b><span>{{ t['id'] }}</span></div>
+    <div class="item"><b>상영시간</b><span>{{ t['time'] }}</span></div>
+    <div class="item"><b>상영관</b><span>{{ t['hall'] }}</span></div>
+
+    {% if is_group %}
+      <div class="item"><b>단체명 / 인원</b><span>{{ t['group_name'] or '-' }} / {{ t['group_size'] or 0 }}명</span></div>
+    {% elif is_teacher %}
+      <div class="item"><b>담당 교사</b><span>{{ t['teacher_name'] or '-' }} / {{ t['class_info'] or '' }}</span></div>
+    {% endif %}
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="item"><span><b>Nyca옵션</b></span></div>
+
+  <div class="t-actions">
+    <button
+      class="pill pill-soft"
+      data-confirm
+      data-title="예약 취소"
+      data-message="정말 예약을 취소할까요? 취소 후 복구할 수 없습니다."
+      data-endpoint="{{ url_for('ticket_delete', tid=t['id'], next='home') }}"
+      data-method="POST">
+      예약 취소
+    </button>
+
+
+    <a class="pill pill-soft" href="{{ url_for('movie_info', movie_id=t['movie_id']) }}">영화 정보</a>
+    <a class="pill pill-soft" href="{{ url_for('notices') }}">상영관 규칙</a>
+
+    <a class="pill pill-soft" href="{{ url_for('index') }}">🏠 홈으로 돌아가기</a>
+  </div>
+</article>
+{% endblock %}

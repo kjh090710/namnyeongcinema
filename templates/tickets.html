@@ -1,0 +1,63 @@
+{# templates/tickets.html #}
+{% extends "base.html" %}
+{% block title %}내 티켓 · 남녕시네마{% endblock %}
+
+{% block content %}
+  <h1 class="h-title-xxl">내 티켓</h1>
+
+  <nav class="stack mt-16 mb-16" style="flex-direction:row; gap:8px; flex-wrap:wrap">
+    <a class="btn {% if tab=='all' %}btn-primary{% else %}btn-soft{% endif %}"
+       href="{{ url_for('tickets', tab='all') }}">전체</a>
+    <a class="btn {% if tab=='normal' %}btn-primary{% else %}btn-soft{% endif %}"
+       href="{{ url_for('tickets', tab='normal') }}">일반</a>
+    <a class="btn {% if tab=='group' %}btn-primary{% else %}btn-soft{% endif %}"
+       href="{{ url_for('tickets', tab='group') }}">단체</a>
+    <a class="btn {% if tab=='teacher' %}btn-primary{% else %}btn-soft{% endif %}"
+       href="{{ url_for('tickets', tab='teacher') }}">교사</a>
+  </nav>
+
+  {% if not tickets %}
+    <div class="card">아직 예매한 티켓이 없습니다.</div>
+  {% else %}
+    <div class="stack">
+      {% for t in tickets %}
+        {% set movie = get_movie(t['movie_id']) %}
+
+        {# 타입 라벨/배지 색 미리 계산(가독성 ↑) #}
+        {% set label = 'Red(일반)' %}
+        {% set chip = 'type-red' %}
+        {% if t['type']=='group' %}
+          {% set label = 'Gold(단체)' %}
+          {% set chip = 'type-gold' %}
+        {% elif t['type']=='teacher' %}
+          {% set label = 'Prime(교사)' %}
+          {% set chip = 'type-prime' %}
+        {% endif %}
+
+        <article class="card" style="display:grid; grid-template-columns: 88px 1fr auto; gap:14px; align-items:center">
+          <img src="{{ movie.poster or url_for('static', filename='images/poster-placeholder.jpg') }}"
+               alt="" style="width:88px;height:120px;object-fit:cover;border-radius:8px">
+
+          <div>
+            <div style="display:flex; gap:8px; align-items:center">
+              <h3 style="margin:0;font-weight:900">{{ movie.title }}</h3>
+              <span class="type-chip {{ chip }}">{{ label }}</span>
+            </div>
+            <div class="text-muted mt-8">{{ t['date'] }} · {{ t['time'] }} · {{ t['hall'] }}</div>
+            <div class="text-muted mt-8">예약번호 {{ t['id'] }}</div>
+          </div>
+
+          <div class="stack" style="gap:8px; align-items:flex-end">
+            <a class="btn btn-primary" href="{{ url_for('ticket_detail', tid=t['id']) }}">자세히 보기</a>
+                <button class="btn btn-soft"
+                        data-confirm
+                        data-title="예약 취소"
+                        data-message="해당 예약을 취소할까요? 취소 후 복구할 수 없습니다."
+                        data-endpoint="{{ url_for('ticket_delete', tid=t['id'], next='home') }}"
+                        data-method="POST">예약 취소</button>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endblock %}

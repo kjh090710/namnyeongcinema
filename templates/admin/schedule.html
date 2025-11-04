@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="stack mt-24">
+  <div class="stack mb-16">
+    <p class="h-eyebrow">관리</p>
+    <h1 class="h-title-xxl">🗓 스케줄 관리</h1>
+    <p class="text-muted">예약 가능한 날짜/시간/상영관을 등록하거나 삭제합니다.</p>
+  </div>
+
+  <form method="post" action="{{ url_for('admin_schedule_new') }}" class="card stack" style="gap:12px;max-width:640px">
+    <div class="stack">
+      <label class="k" style="font-weight:700">상영 날짜 (YYYY-MM-DD)</label>
+      <input class="input" name="date" placeholder="예: 2025-10-22">
+    </div>
+    <div class="stack">
+      <label class="k" style="font-weight:700">상영 시간 (HH:MM)</label>
+      <input class="input" name="time" placeholder="예: 19:30">
+    </div>
+    <div class="stack">
+      <label class="k" style="font-weight:700">상영관 / 장소</label>
+      <input class="input" name="hall" placeholder="예: 강당, 시청각실">
+    </div>
+    <button class="btn btn-primary">스케줄 저장</button>
+  </form>
+
+  <div class="card">
+    <table class="table" style="width:100%;border-collapse:collapse">
+      <thead>
+        <tr>
+          <th style="text-align:left;padding:10px">날짜</th>
+          <th style="text-align:left;padding:10px">시간</th>
+          <th style="text-align:left;padding:10px">상영관</th>
+          <th style="text-align:left;padding:10px">작업</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in schedule %}
+        <tr style="border-top:1px solid var(--border)">
+          <td style="padding:10px">{{ s['date'] }}</td>
+          <td style="padding:10px">{{ s['time'] }}</td>
+          <td style="padding:10px">{{ s['hall'] }}</td>
+          <td style="padding:10px">
+            <form method="post" action="{{ url_for('admin_schedule_delete', date=s['date']) }}"
+                  onsubmit="return confirm('이 날짜의 스케줄을 삭제할까요?')" style="display:inline">
+              <button class="btn btn-soft">삭제</button>
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4" style="padding:14px" class="text-muted">등록된 스케줄이 없습니다.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+</section>
+{% endblock %}

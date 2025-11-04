@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>{% block title %}남녕시네마{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='nyca.css') }}">
+</head>
+<body>
+  <!-- 헤더 -->
+  <header class="nyca-header container">
+    <a class="brand" href="{{ url_for('index') }}">
+      <img
+        src="{{ url_for('static', filename='images/logo.png') }}"
+        alt="남녕시네마 로고"
+        class="brand-mark"
+        loading="eager"
+        decoding="async"
+      />
+    </a>
+
+    <!-- 햄버거 버튼 -->
+    <button class="nyca-menu-btn" aria-label="메뉴" aria-expanded="false" aria-controls="nycaMenu" type="button">
+      <span></span><span></span><span></span>
+    </button>
+  </header>
+
+  <!-- 메뉴 시트 & 오버레이 (nyca.css와 일치) -->
+  <nav id="nycaMenu" class="nyca-menu" hidden>
+    <ul class="nyca-menu-list">
+      <li><a href="{{ url_for('index') }}">홈</a></li>
+      <li><a href="{{ url_for('booking_mode') }}">예매하기</a></li>
+      <li><a href="{{ url_for('notices') }}">공지</a></li>
+      <li><a href="{{ url_for('about') }}">문의</a></li>
+      {% if session.get('is_admin') %}
+        <li><hr style="border:none;height:1px;background:#e5e7eb;margin:6px 0"></li>
+        <li><a href="{{ url_for('admin_dashboard') }}">관리자 대시보드</a></li>
+        <li><a href="{{ url_for('admin_movies') }}">영화 관리</a></li>
+        <li><a href="{{ url_for('admin_schedule') }}">스케줄 관리</a></li>
+        <li><a href="{{ url_for('admin_rules_edit') }}">규정 편집</a></li>
+        <li><a href="{{ url_for('admin_logout') }}">관리자 로그아웃</a></li>
+      {% else %}
+        <li><a href="{{ url_for('admin_dashboard') }}">관리자</a></li>
+      {% endif %}
+    </ul>
+  </nav>
+  <div class="nyca-overlay" hidden></div>
+
+  <!-- 본문 -->
+  <main class="container">
+    {% with msgs = get_flashed_messages(with_categories=true) %}
+      {% if msgs %}
+        <div class="stack mt-16">
+          {% for cat, msg in msgs %}
+            <div class="card{% if cat=='error' %} flash-error{% endif %}">{{ msg }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- (선택) 외부 스크립트 -->
+  <script src="{{ url_for('static', filename='app.js') }}" defer></script>
+
+  <!-- Global Confirm Modal (NYCA unified) -->
+  <div id="nycaModal" class="nyca-modal-overlay" aria-hidden="true">
+    <div class="nyca-modal-backdrop" data-close="1"></div>
+    <div class="nyca-modal" role="dialog" aria-modal="true" aria-labelledby="nycaModalTitle">
+      <h3 id="nycaModalTitle">확인</h3>
+      <p id="nycaModalMsg">이 작업을 진행할까요?</p>
+      <div class="actions">
+        <button class="nyca-btn gray" id="nycaModalCancel" type="button">취소</button>
+        <button class="nyca-btn dark" id="nycaModalOk" type="button">확인</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 메뉴 토글(IIFE) + 접근성 & 애니메이션 -->
+  <script>
+  (() => {
+    const btn     = document.querySelector('.nyca-menu-btn');
+    const sheet   = document.getElementById('nycaMenu');
+    const overlay = document.querySelector('.nyca-overlay');
+    if (!btn || !sheet || !overlay) return;
+
+    const links = () => Array.from(sheet.querySelectorAll('a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'));
+    let lastFocused = null;
+
+    const openMenu = () => {
+      lastFocused = document.activeElement;
+      sheet.hidden = false;
+      overlay.hidden = false;
+
+      requestAnimationFrame(() => {
+        btn.classList.add('is-open');
+        sheet.classList.add('is-open');
+        overlay.classList.add('is-open');
+        btn.setAttribute('aria-expanded', 'true');
+
+        const first = links()[0];
+        if (first) first.focus({ preventScroll: true });
+        else { sheet.setAttribute('tabindex','-1'); sheet.focus({ preventScroll: true }); }
+      });
+
+      trapFocus(true);
+    };
+
+    const closeMenu = () => {
+      btn.classList.remove('is-open');
+      sheet.classList.remove('is-open');
+      overlay.classList.remove('is-open');
+      btn.setAttribute('aria-expanded', 'false');
+
+      let done = false;
+      const tidy = () => {
+        if (done) return;
+        done = true;
+        sheet.hidden = true;
+        overlay.hidden = true;
+        sheet.removeEventListener('transitionend', tidy);
+      };
+      sheet.addEventListener('transitionend', tidy, { once: true });
+      setTimeout(tidy, 300);
+
+      trapFocus(false);
+      if (lastFocused && typeof lastFocused.focus === 'function') {
+        lastFocused.focus({ preventScroll: true });
+      }
+    };
+
+    const toggleMenu = () => btn.classList.contains('is-open') ? closeMenu() : openMenu();
+
+    const onKeydown = (e) => {
+      if (!btn.classList.contains('is-open')) return;
+      if (e.key === 'Escape') { e.preventDefault(); closeMenu(); return; }
+      if (e.key === 'Tab') {
+        const items = links(); if (!items.length) return;
+        const first = items[0], last = items[items.length - 1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }
+    };
+
+    const onClickOutside = (e) => {
+      if (!btn.classList.contains('is-open')) return;
+      const inside = sheet.contains(e.target);
+      const onBtn  = btn.contains(e.target);
+      if (!inside && !onBtn) closeMenu();
+    };
+
+    const trapFocus = (enable) => {
+      const m = enable ? 'addEventListener' : 'removeEventListener';
+      document[m]('keydown', onKeydown);
+      document[m]('click', onClickOutside);
+    };
+
+    btn.addEventListener('click', toggleMenu);
+    overlay.addEventListener('click', closeMenu);
+    btn.setAttribute('aria-expanded', 'false');
+  })();
+  </script>
+
+  <!-- NYCA Confirm Modal manager -->
+  <script>
+  (function () {
+    const $overlay = document.getElementById('nycaModal');
+    const $backdrop = $overlay.querySelector('.nyca-modal-backdrop');
+    const $title   = document.getElementById('nycaModalTitle');
+    const $msg     = document.getElementById('nycaModalMsg');
+    const $ok      = document.getElementById('nycaModalOk');
+    const $cancel  = document.getElementById('nycaModalCancel');
+
+    let resolver = null, restoreFocus = null;
+
+    function openConfirm({ title="확인", message="진행할까요?", okText="확인" } = {}) {
+      $title.textContent = title; $msg.textContent = message; $ok.textContent = okText;
+      $overlay.classList.add('show'); document.body.classList.add('modal-open');
+      restoreFocus = document.activeElement; $ok.focus();
+      return new Promise((resolve) => { resolver = resolve; });
+    }
+    function closeConfirm(result=false) {
+      $overlay.classList.remove('show'); document.body.classList.remove('modal-open');
+      if (restoreFocus) restoreFocus.focus();
+      if (resolver) { resolver(result); resolver = null; }
+    }
+
+    $cancel.addEventListener('click', () => closeConfirm(false));
+    $backdrop.addEventListener('click', () => closeConfirm(false));
+    window.addEventListener('keydown', (e) => {
+      if ($overlay.classList.contains('show') && e.key === 'Escape') closeConfirm(false);
+    });
+    $ok.addEventListener('click', () => closeConfirm(true));
+
+    // 전역 공개
+    window.NYCAConfirm = openConfirm;
+
+    // data-confirm 자동 처리
+    document.addEventListener('click', async (e) => {
+      const el = e.target.closest('[data-confirm]'); if (!el) return;
+      e.preventDefault();
+
+      const title   = el.dataset.title   || el.getAttribute('data-confirm') || '확인';
+      const message = el.dataset.message || '진행할까요?';
+      const okText  = el.dataset.ok      || '확인';
+      const endpoint= el.dataset.endpoint;
+      const method  = (el.dataset.method || 'POST').toUpperCase();
+      const bodyJson= el.dataset.body || null;
+
+      const ok = await openConfirm({ title, message, okText }); if (!ok) return;
+
+      try {
+        const init = { method, headers: { 'X-Requested-With': 'fetch' } };
+        if (method !== 'GET' && bodyJson) { init.headers['Content-Type'] = 'application/json'; init.body = bodyJson; }
+        const res = await fetch(endpoint, init);
+        if (res.ok) window.location.href = res.url || endpoint;
+        else alert('요청이 실패했습니다. (' + res.status + ')');
+      } catch (err) {
+        console.error(err); alert('네트워크 오류가 발생했습니다.');
+      }
+    });
+  })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="stack mt-24">
+  <div class="stack mb-20">
+    <p class="h-eyebrow">🎟️ 관리 페이지</p>
+    <h1 class="h-title-xxl">예매 관리 대시보드</h1>
+    <p class="text-muted">영화 예매 내역을 검토하고 승인, 거절, 삭제할 수 있습니다.</p>
+  </div>
+
+  <div class="stack mb-16" style="display:flex;gap:10px;flex-wrap:wrap">
+   <a class="btn btn-primary" href="{{ url_for('admin_movies') }}">🎬 영화 관리</a>
+   <a class="btn btn-primary" href="{{ url_for('admin_schedule') }}">🗓 스케줄 관리</a>
+  </div>
+
+  <div class="card">
+    <table class="table" style="width:100%; border-collapse:collapse;">
+      <thead>
+        <tr>
+          <th style="text-align:left; padding:10px;">ID</th>
+          <th style="text-align:left; padding:10px;">영화</th>
+          <th style="text-align:left; padding:10px;">예약자</th>
+          <th style="text-align:left; padding:10px;">날짜/시간/관</th>
+          <th style="text-align:left; padding:10px;">유형</th>
+          <th style="text-align:left; padding:10px;">상태</th>
+          <th style="text-align:left; padding:10px;">작업</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for r in latest %}
+        <tr style="border-top:1px solid var(--border);">
+          <td style="padding:10px;">{{ r['id'] }}</td>
+          <td style="padding:10px;">{{ r['movie_title'] }}</td>
+          <td style="padding:10px;">{{ r['student_id'] }} {{ r['student_name'] }}</td>
+          <td style="padding:10px;">{{ r['date'] }} {{ r['time'] }} / {{ r['hall'] }}</td>
+          <td style="padding:10px;">{{ r['type'] }}</td>
+
+          <td style="padding:10px;">
+            {% if r['status'] == 'approved' %}
+              <span class="badge bg-green-100 text-green-700">승인됨</span>
+            {% elif r['status'] == 'pending' %}
+              <span class="badge bg-yellow-100 text-yellow-700">대기</span>
+            {% elif r['status'] == 'rejected' %}
+              <span class="badge bg-red-100 text-red-700">거절됨</span>
+            {% else %}
+              <span class="badge">-</span>
+            {% endif %}
+          </td>
+
+          <td style="padding:10px;">
+            <button class="btn btn-secondary"
+              data-confirm
+              data-title="상태 변경"
+              data-message="해당 예약을 승인으로 되돌릴까요?"
+              data-endpoint="{{ url_for('admin_set_status', tid=r['id']) }}"
+              data-method="POST"
+              data-body='{"status":"approved"}'>
+              승인
+            </button>
+
+            <button class="btn btn-light"
+              data-confirm
+              data-title="상태 변경"
+              data-message="해당 예약을 대기로 되돌릴까요?"
+              data-endpoint="{{ url_for('admin_set_status', tid=r['id']) }}"
+              data-method="POST"
+              data-body='{"status":"pending"}'>
+              대기
+            </button>
+
+            <button class="btn btn-outline-danger"
+              data-confirm
+              data-title="상태 변경"
+              data-message="해당 예약을 거절로 변경할까요?"
+              data-endpoint="{{ url_for('admin_set_status', tid=r['id']) }}"
+              data-method="POST"
+              data-body='{"status":"rejected"}'>
+              거절
+            </button>
+
+            <button class="btn btn-danger"
+              data-confirm
+              data-title="예약 삭제"
+              data-message="정말 삭제할까요? 이 작업은 되돌릴 수 없습니다."
+              data-endpoint="{{ url_for('admin_delete_ticket', tid=r['id']) }}"
+              data-method="POST">
+              삭제
+            </button>
+            </form>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

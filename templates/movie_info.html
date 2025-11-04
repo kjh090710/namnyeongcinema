@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}{{ movie.title }} | 남녕시네마{% endblock %}
+{% block content %}
+
+<section class="ticket-hero" style="height: 44dvh; max-height: 480px;">
+  <img src="{{ movie.poster or url_for('static', filename='images/poster-placeholder.jpg') }}" alt="{{ movie.title }}">
+  <div class="title-wrap">
+    <p class="eyebrow">Movie Info</p>
+    <h1 class="title">{{ movie.title }}</h1>
+  </div>
+</section>
+
+<article class="ticket-sheet">
+  <header class="sheet-head">
+    <h2 class="sheet-title">{{ movie.title }}</h2>
+    <span class="type-chip type-red">영화 정보</span>
+  </header>
+
+  <div class="kv" style="margin-top:12px">
+    <div class="item"><b>장르</b><span>{{ movie.genre }}</span></div>
+    <div class="item"><b>등급</b><span>{{ movie.rating }}</span></div>
+    <div class="item"><b>상영시간</b><span>{{ movie.runtime }}</span></div>
+    <div class="item"><b>제작년도</b><span>{{ movie.year or '-' }}</span></div>
+    <div class="item"><b>감독</b><span>{{ movie.director }}</span></div>
+    <div class="item"><b>출연</b>
+      <span>
+        {% if movie.actors and movie.actors|length %}
+          {{ movie.actors|join(', ') }}
+        {% else %}
+          -
+        {% endif %}
+      </span>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="stack">
+    <h3 class="h-eyebrow" style="font-size:18px; color:#2f3141;">줄거리</h3>
+    <p class="k" style="line-height:1.7">{{ movie.summary }}</p>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="stack">
+    <h3 class="h-eyebrow" style="font-size:18px; color:#2f3141;">상영 스케줄</h3>
+
+    {% if schedule and schedule|length %}
+      <div class="card-soft" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;">
+        {% for s in schedule %}
+          <div class="card" style="padding:14px">
+            <div class="k" style="font-weight:800">{{ s.date }}</div>
+            <div style="font-weight:900; font-size:18px; margin-top:6px">{{ s.time }}</div>
+            <div class="text-muted" style="margin-top:2px">상영관 {{ s.hall }}</div>
+            <a class="btn btn-primary mt-12" href="{{ url_for('reserve', rtype='normal') }}?movieId={{ movie.id }}">이 날짜로 예매</a>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="card-soft">등록된 상영 스케줄이 없습니다.</div>
+    {% endif %}
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="actions" style="margin-top:10px">
+    <a class="pill pill-soft" href="{{ url_for('booking_mode') }}">예매하기</a>
+    <a class="pill pill-soft" href="{{ url_for('index') }}">홈으로</a>
+  </div>
+</article>
+
+{% endblock %}
