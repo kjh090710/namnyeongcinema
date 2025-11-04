@@ -63,20 +63,14 @@
       <span class="label">대표자 이름</span>
       <input type="text" name="student_name" class="input" placeholder="예: 강준환" required>
     </label>
-
-    <label class="field">
-      <span class="label">단체명</span>
-      <input type="text" name="group_name" class="input" placeholder="예: 코딩반" required>
-    </label>
-
-    <label class="field">
-    <span class="label">동반자 학번</span>
-    <textarea id="companions" name="companions" class="input" rows="5"
-      placeholder="예: 10709, 21026, 21210 …&#10;쉼표(,), 공백, 줄바꿈으로 구분하세요. 대표자는 제외하고 입력"></textarea>
-
-    <small class="help" id="groupCount">
-      * 총 인원은 ‘대표자 1명 + 동반자 수’로 자동 계산됩니다 (단체는 2명 이상).
-    </small>
+    
+    <!-- 동반자 학번 -->
+    <div class="field">
+      <label class="label" for="member_ids">동반자 학번</label>
+      <textarea class="input" id="member_ids" name="member_ids" rows="4"
+                placeholder="예: 10202, 21026, 30413 …&#10;쉼표(,) 또는 줄바꿈으로 구분하세요. 대표자는 제외하고 입력"></textarea>
+      <p class="help">총 인원은 ‘대표자 1명 + 동반자 수’로 자동 계산됩니다.(단체는 2명 이상)</p>
+    </div>
     </label>
   </div>
 

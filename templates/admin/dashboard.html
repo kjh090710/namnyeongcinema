@@ -4,19 +4,20 @@
   <div class="stack mb-20">
     <p class="h-eyebrow">🎟️ 관리 페이지</p>
     <h1 class="h-title-xxl">예매 관리 대시보드</h1>
-    <p class="text-muted">영화 예매 내역을 검토하고 승인, 거절, 삭제할 수 있습니다.</p>
+    <p class="text-muted">영화 예매 내역을 검토하고 승인/대기/거절/삭제할 수 있습니다.</p>
   </div>
 
-  <div class="stack mb-16" style="display:flex;gap:10px;flex-wrap:wrap">
-   <a class="btn btn-primary" href="{{ url_for('admin_movies') }}">🎬 영화 관리</a>
-   <a class="btn btn-primary" href="{{ url_for('admin_schedule') }}">🗓 스케줄 관리</a>
+  <div class="home-fold" style="display:flex;gap:10px;flex-wrap:wrap">
+    <a class="btn btn-primary" href="{{ url_for('admin_movies') }}">🎬 영화 관리</a>
+    <a class="btn btn-primary" href="{{ url_for('admin_schedule') }}">🗓 스케줄 관리</a>
+    <a class="btn btn-primary" href="{{ url_for('admin_rules_edit') }}">📄 규정 편집</a>
   </div>
 
   <div class="card">
     <table class="table" style="width:100%; border-collapse:collapse;">
       <thead>
         <tr>
-          <th style="text-align:left; padding:10px;">ID</th>
+          <th style="text-align:left; padding:10px;">예약번호</th>
           <th style="text-align:left; padding:10px;">영화</th>
           <th style="text-align:left; padding:10px;">예약자</th>
           <th style="text-align:left; padding:10px;">날짜/시간/관</th>
@@ -27,12 +28,22 @@
       </thead>
       <tbody>
       {% for r in latest %}
+        {% set type_label = 'Red(일반)' if r['type']=='normal' else ('Gold(단체)' if r['type']=='group' else 'Prime(교사)') %}
         <tr style="border-top:1px solid var(--border);">
           <td style="padding:10px;">{{ r['id'] }}</td>
           <td style="padding:10px;">{{ r['movie_title'] }}</td>
-          <td style="padding:10px;">{{ r['student_id'] }} {{ r['student_name'] }}</td>
+          <td style="padding:10px;">
+            {% if r['type'] == 'teacher' %}
+              {{ r['teacher_name'] or '-' }}<br><span class="text-muted">{{ r['class_info'] or '' }}</span>
+            {% elif r['type'] == 'group' %}
+              {{ r['student_id'] }} {{ r['student_name'] }}<br>
+              {% if r['member_ids'] %}<span class="text-muted">동반자: {{ r['member_ids'] }}</span>{% endif %}
+            {% else %}
+              {{ r['student_id'] }} {{ r['student_name'] }}
+            {% endif %}
+          </td>
           <td style="padding:10px;">{{ r['date'] }} {{ r['time'] }} / {{ r['hall'] }}</td>
-          <td style="padding:10px;">{{ r['type'] }}</td>
+          <td style="padding:10px;">{{ type_label }}</td>
 
           <td style="padding:10px;">
             {% if r['status'] == 'approved' %}
@@ -46,28 +57,29 @@
             {% endif %}
           </td>
 
-          <td style="padding:10px;">
-            <button class="btn btn-secondary"
+          <td style="padding:10px; display:flex; gap:6px; flex-wrap:wrap;">
+            <button class="btn btn-primary"
               data-confirm
               data-title="상태 변경"
-              data-message="해당 예약을 승인으로 되돌릴까요?"
+              data-message="해당 예약을 승인으로 변경할까요?"
               data-endpoint="{{ url_for('admin_set_status', tid=r['id']) }}"
               data-method="POST"
               data-body='{"status":"approved"}'>
               승인
             </button>
 
-            <button class="btn btn-light"
+            <button class="btn btn-soft"
               data-confirm
               data-title="상태 변경"
-              data-message="해당 예약을 대기로 되돌릴까요?"
+              data-message="해당 예약을 대기로 변경할까요?"
               data-endpoint="{{ url_for('admin_set_status', tid=r['id']) }}"
               data-method="POST"
               data-body='{"status":"pending"}'>
               대기
             </button>
 
-            <button class="btn btn-outline-danger"
+            <button class="btn btn-soft"
+              style="background:#fee2e2;color:#991b1b"
               data-confirm
               data-title="상태 변경"
               data-message="해당 예약을 거절로 변경할까요?"
@@ -85,9 +97,10 @@
               data-method="POST">
               삭제
             </button>
-            </form>
           </td>
         </tr>
+      {% else %}
+        <tr><td colspan="7" style="padding:18px; text-align:center; color:#6b7280;">최근 예약이 없습니다.</td></tr>
       {% endfor %}
       </tbody>
     </table>

@@ -54,7 +54,7 @@
     <div class="item"><b>상영관</b><span>{{ t['hall'] }}</span></div>
 
     {% if is_group %}
-      <div class="item"><b>단체명 / 인원</b><span>{{ t['group_name'] or '-' }} / {{ t['group_size'] or 0 }}명</span></div>
+      <div class="item"><b>동반자 학번</b><span>{{ t['member_ids'] }}</span></div>
     {% elif is_teacher %}
       <div class="item"><b>담당 교사</b><span>{{ t['teacher_name'] or '-' }} / {{ t['class_info'] or '' }}</span></div>
     {% endif %}

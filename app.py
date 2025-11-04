@@ -84,6 +84,28 @@ def make_ticket_id(rtype: str, date_str: str, student_id: str | None) -> str:
             candidate = f"{base}-{n}"
     return candidate
 
+def normalize_member_ids(raw: str) -> str:
+    """'10202, 21026 30413\n...' 같은 입력을 '10202,21026,30413' 으로 정리"""
+    if not raw:
+        return ""
+    parts = []
+    for line in raw.replace("\r", " ").replace("\t", " ").split("\n"):
+        for p in line.replace(" ", ",").split(","):
+            s = p.strip()
+            if not s:
+                continue
+            # 숫자/영문만 허용(혹시 하이픈 등 쓰면 제거)
+            s = "".join(ch for ch in s if ch.isalnum())
+            if s:
+                parts.append(s)
+    # 중복 제거(입력 편의), 순서 유지
+    seen = set()
+    uniq = []
+    for sid in parts:
+        if sid not in seen:
+            uniq.append(sid); seen.add(sid)
+    return ",".join(uniq)
+
 def normalize_member_names(raw: str) -> str:
     """ '홍길동, 김철수\n이영희' → '홍길동,김철수,이영희' """
     if not raw:
@@ -135,6 +157,8 @@ def init_db():
         ensure_col("tickets", "student_id", "TEXT")
         ensure_col("tickets", "student_name", "TEXT")
         ensure_col("tickets", "member_names", "TEXT")  # 단체 인원 이름 저장
+        ensure_col("tickets","member_names","TEXT")
+        ensure_col("tickets","member_ids","TEXT")
 
         conn.execute("""
         CREATE TABLE IF NOT EXISTS schedule (
@@ -452,8 +476,17 @@ def create_app():
                     group_size = int(form.get("group_size", "0"))
                 except Exception:
                     group_size = 0
-                member_names = normalize_member_names(form.get("member_names", ""))
 
+                # 동반자 '이름' 입력칸(있다면) 정리
+                member_names_raw = form.get("member_names", "")
+                member_names = normalize_member_names(member_names_raw)
+
+                # 동반자 '학번' 입력칸(새로 추가)
+                # name="member_ids" 로 받되, 기존 폼에서 다른 이름을 썼다면 대비
+                member_ids_raw = form.get("member_ids") or form.get("companions") or form.get("member_student_ids") or ""
+                member_ids = normalize_member_ids(member_ids_raw)
+
+                
             else:  # teacher
                 teacher_name = (form.get("teacher_name") or "").strip()
                 class_info = (form.get("class_info") or "").strip()
@@ -476,17 +509,31 @@ def create_app():
                 vals = [
                     t_id, rtype, movie["id"] if movie else None, movie["title"] if movie else None,
                     date, time_, hall,
-                    group_name, group_size, teacher_name, class_info,
+                    None, None, None, None,
                     student_id, student_name, status, now_iso()
                 ]
 
-                # 단체 인원 이름(member_names) 칼럼이 있으면 같이 저장
-                if rtype == "group" and has_column(conn, "tickets", "member_names"):
-                    cols.insert(12, "member_names")   # student_id 앞에 삽입
-                    vals.insert(12, member_names)
+                if rtype == "group":
+                    vals[7] = group_name
+                    vals[8] = group_size
+
+                    # DB에 컬럼이 있으면 동적 추가
+                    insert_pos = 11  # student_id 앞에 끼워넣기
+                    if has_column(conn, "tickets", "member_names"):
+                        cols.insert(insert_pos, "member_names")
+                        vals.insert(insert_pos, member_names)
+                        insert_pos += 1
+                    if has_column(conn, "tickets", "member_ids"):
+                        cols.insert(insert_pos, "member_ids")
+                        vals.insert(insert_pos, member_ids)
+
+                elif rtype == "teacher":
+                    vals[9] = teacher_name
+                    vals[10] = class_info
 
                 q_marks = ",".join(["?"] * len(cols))
-                conn.execute(f"INSERT INTO tickets ({', '.join(cols)}) VALUES ({q_marks})", tuple(vals))
+                sql = f"INSERT INTO tickets ({', '.join(cols)}) VALUES ({q_marks})"
+                conn.execute(sql, tuple(vals))
 
             return redirect(url_for("ticket_detail", tid=t_id))
 
