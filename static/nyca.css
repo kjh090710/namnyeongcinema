@@ -245,7 +245,9 @@ body.modal-open{overflow:hidden}
 /* 텍스트 묶음 */
 .home-text{ display: grid; gap: 10px; align-content: start; }
 .home-text2{ display: grid; gap: 0px; align-content: start; }
-.home-text2{ margin: 0; }
+.home-text2 p {
+  margin: 0;
+}
 .home-title{
   font-weight: 900;
   color: #2f3141;
