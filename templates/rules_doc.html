@@ -2,7 +2,7 @@
 {% block title %}상영관 규정 전문 | 남녕시네마{% endblock %}
 {% block content %}
 <section class="ticket-hero" style="height: 30dvh; max-height: 360px;">
-  <img src="{{ url_for('static', filename='images/poster-placeholder.jpg') }}" alt="Rules Document">
+  <img src="{{ movie.poster or url_for('static', filename='images/poster-placeholder.jpg') }}" alt="Rules Document">
   <div class="title-wrap">
     <p class="eyebrow">Nyca Theater Policy</p>
     <h1 class="title">남녕시네마 운영규칙 (전문)</h1>
