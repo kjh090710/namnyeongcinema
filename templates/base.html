@@ -7,7 +7,6 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='nyca.css') }}">
 </head>
 <body>
-  <!-- 헤더 -->
   <header class="nyca-header container">
     <a class="brand" href="{{ url_for('index') }}">
       <img
@@ -19,13 +18,11 @@
       />
     </a>
 
-    <!-- 햄버거 버튼 -->
     <button class="nyca-menu-btn" aria-label="메뉴" aria-expanded="false" aria-controls="nycaMenu" type="button">
       <span></span><span></span><span></span>
     </button>
   </header>
 
-  <!-- 메뉴 시트 & 오버레이 (nyca.css와 일치) -->
   <nav id="nycaMenu" class="nyca-menu" hidden>
     <ul class="nyca-menu-list">
       <li><a href="{{ url_for('index') }}">홈</a></li>
@@ -46,7 +43,6 @@
   </nav>
   <div class="nyca-overlay" hidden></div>
 
-  <!-- 본문 -->
   <main class="container">
     {% with msgs = get_flashed_messages(with_categories=true) %}
       {% if msgs %}
@@ -61,10 +57,8 @@
     {% block content %}{% endblock %}
   </main>
 
-  <!-- (선택) 외부 스크립트 -->
   <script src="{{ url_for('static', filename='app.js') }}" defer></script>
 
-  <!-- Global Confirm Modal (NYCA unified) -->
   <div id="nycaModal" class="nyca-modal-overlay" aria-hidden="true">
     <div class="nyca-modal-backdrop" data-close="1"></div>
     <div class="nyca-modal" role="dialog" aria-modal="true" aria-labelledby="nycaModalTitle">
@@ -77,7 +71,6 @@
     </div>
   </div>
 
-  <!-- 메뉴 토글(IIFE) + 접근성 & 애니메이션 -->
   <script>
   (() => {
     const btn     = document.querySelector('.nyca-menu-btn');
@@ -162,7 +155,6 @@
   })();
   </script>
 
-  <!-- NYCA Confirm Modal manager -->
   <script>
   (function () {
     const $overlay = document.getElementById('nycaModal');
@@ -193,10 +185,8 @@
     });
     $ok.addEventListener('click', () => closeConfirm(true));
 
-    // 전역 공개
     window.NYCAConfirm = openConfirm;
 
-    // data-confirm 자동 처리
     document.addEventListener('click', async (e) => {
       const el = e.target.closest('[data-confirm]'); if (!el) return;
       e.preventDefault();

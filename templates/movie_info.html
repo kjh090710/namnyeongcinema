@@ -20,50 +20,22 @@
     <div class="item"><b>장르</b><span>{{ movie.genre }}</span></div>
     <div class="item"><b>등급</b><span>{{ movie.rating }}</span></div>
     <div class="item"><b>상영시간</b><span>{{ movie.runtime }}</span></div>
-    <div class="item"><b>제작년도</b><span>{{ movie.year or '-' }}</span></div>
-    <div class="item"><b>감독</b><span>{{ movie.director }}</span></div>
-    <div class="item"><b>출연</b>
-      <span>
-        {% if movie.actors and movie.actors|length %}
-          {{ movie.actors|join(', ') }}
-        {% else %}
-          -
-        {% endif %}
-      </span>
-    </div>
+    <div class="item"><b>개봉일</b><span>2014년 11월 6일</span></div>
+    <div class="item"><b>감독</b><span>크리스토퍼 놀란</span></div>
   </div>
 
   <div class="divider"></div>
 
-  <div class="stack">
-    <h3 class="h-eyebrow" style="font-size:18px; color:#2f3141;">줄거리</h3>
-    <p class="k" style="line-height:1.7">{{ movie.summary }}</p>
+  <div class="item">
+    <h2 style="margin:0 0 12px">줄거리</h2>
+    <p>근 미래, 지구는 식량 부족과 황폐화로 멸망 위기에 놓인다. 전 NASA 파일럿 쿠퍼는 인류의 새로운 거주지를 찾기 위해 웜홀을 지나 우주 탐사에 나선다. 
+      그는 동료들과 여러 행성을 탐사하며 시간 지연 등 극한 상황을 겪고, 결국 딸 머피가 지구에서 중력 방정식을 해결할 수 있도록 중력파로 메시지를 전달한다. 
+      그 결과 인류는 새로운 거처로 이주할 희망을 얻는다.</p>
   </div>
 
   <div class="divider"></div>
 
-  <div class="stack">
-    <h3 class="h-eyebrow" style="font-size:18px; color:#2f3141;">상영 스케줄</h3>
-
-    {% if schedule and schedule|length %}
-      <div class="card-soft" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;">
-        {% for s in schedule %}
-          <div class="card" style="padding:14px">
-            <div class="k" style="font-weight:800">{{ s.date }}</div>
-            <div style="font-weight:900; font-size:18px; margin-top:6px">{{ s.time }}</div>
-            <div class="text-muted" style="margin-top:2px">상영관 {{ s.hall }}</div>
-            <a class="btn btn-primary mt-12" href="{{ url_for('reserve', rtype='normal') }}?movieId={{ movie.id }}">이 날짜로 예매</a>
-          </div>
-        {% endfor %}
-      </div>
-    {% else %}
-      <div class="card-soft">등록된 상영 스케줄이 없습니다.</div>
-    {% endif %}
-  </div>
-
-  <div class="divider"></div>
-
-  <div class="actions" style="margin-top:10px">
+  <div class="actions" style="margin-top:25px">
     <a class="pill pill-soft" href="{{ url_for('booking_mode') }}">예매하기</a>
     <a class="pill pill-soft" href="{{ url_for('index') }}">홈으로</a>
   </div>

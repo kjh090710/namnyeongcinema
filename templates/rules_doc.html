@@ -19,10 +19,9 @@
     <pre style="white-space:pre-wrap; font-family: ui-sans-serif, system-ui, -apple-system, 'Noto Sans KR', 'Pretendard', Arial; line-height:1.65; font-size:15px; color:#1f2937; margin:0;">{{ text }}</pre>
   </div>
 
-  <div class="actions" style="margin-top:14px">
-    <a href="{{ url_for('rules_download') }}" class="btn btn-soft">텍스트 다운로드</a>
-    <button onclick="window.print()" class="btn btn-soft" type="button">인쇄</button>
-    <a href="{{ url_for('admin_rules_edit') }}" class="btn btn-soft">관리자: 규정 편집</a>
+  <div class="t-actions">
+    <button onclick="window.print()" class="pill pill-soft" type="button">인쇄</button>
+    <a class="pill pill-soft" href="{{ url_for('rules_doc', rtype=rtype) }}" target="_blank" rel="noopener">텍스트로 다운로드</a>
   </div>
 </article>
 {% endblock %}
