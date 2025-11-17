@@ -1,11 +1,15 @@
 {% extends "base.html" %}
 {% block title %}관리자 로그인{% endblock %}
 {% block content %}
+
+<div class="home-text">
+  <h1 class="home-title">관리자가 아닌 인원이 접속시 처벌될 수 있습니다.</h1>
 <div class="card" style="max-width:420px">
   <h2 style="margin:0 0 12px">관리자 로그인</h2>
   <form method="post" class="form">
     <label>비밀번호 <input class="input" type="password" name="password" required></label>
     <button class="btn primary">로그인</button>
   </form>
+  
 </div>
 {% endblock %}

@@ -6,6 +6,8 @@ from movies import MOVIES as BASE_MOVIES, TIMES, HALLS, BOOK_TYPES
 from urllib.parse import urlencode
 import re
 from pathlib import Path
+from werkzeug.security import generate_password_hash, check_password_hash
+
 
 try:
     from zoneinfo import ZoneInfo
@@ -26,13 +28,53 @@ def db():
     return conn
 
 def ensure_kv_table():
+    """단순 key-value 설정 테이블 (settings) 보장"""
     with db() as conn:
         conn.execute("""
-            CREATE TABLE IF NOT EXISTS settings (
-                key   TEXT PRIMARY KEY,
-                value TEXT
-            )
+        CREATE TABLE IF NOT EXISTS settings (
+            key   TEXT PRIMARY KEY,
+            value TEXT NOT NULL
+        );
         """)
+
+def admin_required(fn):
+    """관리자 세션 확인용 전역 데코레이터"""
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        if not session.get("is_admin"):
+            flash("관리자 로그인이 필요합니다.", "error")
+            next_url = request.path
+            return redirect(url_for("admin_login", next=next_url))
+        return fn(*args, **kwargs)
+    return wrapper
+
+def get_admin_password_hash():
+    """DB에 저장된 관리자 비밀번호 해시를 가져온다.
+       없으면 환경변수/기본값을 해시로 만들어 초기값으로 사용."""
+    ensure_kv_table()
+    with db() as conn:
+        row = conn.execute(
+            "SELECT value FROM settings WHERE key='admin_password_hash'"
+        ).fetchone()
+
+    if row:
+        return row[0]
+
+    plain = current_app.config.get("ADMIN_PASSWORD", "nnhs2025!")
+    return generate_password_hash(plain)
+
+
+def set_admin_password_hash(new_plain: str):
+    """관리자 비밀번호를 새로운 값으로 변경(해시 저장)."""
+    ensure_kv_table()
+    hashed = generate_password_hash(new_plain)
+    with db() as conn:
+        conn.execute("""
+        INSERT INTO settings(key, value)
+        VALUES('admin_password_hash', ?)
+        ON CONFLICT(key) DO UPDATE SET value=excluded.value
+        """, (hashed,))
+    return hashed
 
 def set_setting(key, value):
     ensure_kv_table()
@@ -236,11 +278,40 @@ DEFAULT_RULES_DOC = """여기에 현재 쓰고 있는 규정 전문 전체를 �
 def create_app():
     app = Flask(__name__, template_folder="templates", static_folder="static")
     app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-nnhs-cinema")
-    app.config["ADMIN_PASSWORD"] = os.environ.get("ADMIN_PASSWORD", "nnhsnycaad1986@@")
+    app.config["ADMIN_PASSWORD"] = os.environ.get("ADMIN_PASSWORD", "adggnnhs1199@@")
     app.config["TEACHER_PASSCODE"] = os.environ.get("TEACHER_PASSCODE", "tnnhsnyca1986@@")
 
     Path(app.instance_path).mkdir(parents=True, exist_ok=True)
     app.config["DB_PATH"] = os.path.join(app.instance_path, "cinema.db")
+
+    @app.route("/admin/password", methods=["GET", "POST"], endpoint="admin_password_change")
+    @admin_required
+    def admin_password_change():
+        if request.method == "POST":
+            current = (request.form.get("current_password") or "").strip()
+            new     = (request.form.get("new_password") or "").strip()
+            confirm = (request.form.get("new_password_confirm") or "").strip()
+
+            from werkzeug.security import check_password_hash
+
+            stored_hash = get_admin_password_hash()
+            if not check_password_hash(stored_hash, current):
+                flash("현재 비밀번호가 올바르지 않습니다.", "error")
+                return redirect(request.url)
+
+            if len(new) < 8:
+                flash("새 비밀번호는 8자 이상으로 설정해 주세요.", "error")
+                return redirect(request.url)
+
+            if new != confirm:
+                flash("새 비밀번호와 확인 비밀번호가 일치하지 않습니다.", "error")
+                return redirect(request.url)
+
+            set_admin_password_hash(new)
+            flash("관리자 비밀번호가 변경되었습니다.", "ok")
+            return redirect(url_for("admin_dashboard"))
+
+        return render_template("admin/password_change.html")
 
     @app.template_filter("badge_status")
     def badge_status(s):
@@ -272,15 +343,6 @@ def create_app():
                 return redirect(url_for("rules", rtype=rtype))
             if not session.get("agreed_privacy"):
                 return redirect(url_for("privacy_agree", rtype=rtype))
-
-    def admin_required(fn):
-        @wraps(fn)
-        def wrapper(*args, **kwargs):
-            if not session.get("is_admin"):
-                flash("관리자 로그인이 필요합니다.", "error")
-                return redirect(url_for("admin_login", next=request.path))
-            return fn(*args, **kwargs)
-        return wrapper
 
     def teacher_required(view_func):
         @wraps(view_func)
@@ -461,7 +523,7 @@ def create_app():
                     return redirect(request.url)
 
                 member_ids_raw = form.get("member_ids", "")
-                member_ids = normalize_member_names(member_ids_raw)
+                member_ids = normalize_member_ids(member_ids_raw)
 
                 id_list = [x for x in member_ids.split(",") if x.strip()]
 
@@ -608,10 +670,16 @@ def create_app():
     @app.route("/admin/login", methods=["GET","POST"])
     def admin_login():
         if request.method == "POST":
-            if request.form.get("password","") == current_app.config["ADMIN_PASSWORD"]:
+            pw = (request.form.get("password") or "").strip()
+
+            stored_hash = get_admin_password_hash()
+            if check_password_hash(stored_hash, pw):
                 session["is_admin"] = True
+                flash("관리자 로그인 성공", "ok")
                 return redirect(url_for("admin_dashboard"))
+
             flash("비밀번호가 올바르지 않습니다.", "error")
+
         return render_template("admin/login.html")
 
     @app.route("/admin/logout")
