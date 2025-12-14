@@ -94,10 +94,10 @@ def get_setting(key, default=None):
 
 def make_ticket_id(rtype: str, date_str: str, student_id: str | None) -> str:
     """
-    규칙: 티켓구분번호(1/2/3) + YY + MMDD + (student_id; 교사 제외)
+    규칙: 티켓구분번호(1/2) + YY + MMDD + (student_id; 교사 제외)
     - rtype: normal/group/teacher
     - date_str: 'YYYY-MM-DD'
-    - student_id: 학번(교사면 None 또는 '')
+    - student_id: 학번
     """
     code = TYPE_CODE.get((rtype or "").lower(), "9")
     try:
@@ -278,8 +278,7 @@ DEFAULT_RULES_DOC = """여기에 현재 쓰고 있는 규정 전문 전체를 �
 def create_app():
     app = Flask(__name__, template_folder="templates", static_folder="static")
     app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-nnhs-cinema")
-    app.config["ADMIN_PASSWORD"] = os.environ.get("ADMIN_PASSWORD", "adggnnhs1199@@")
-    app.config["TEACHER_PASSCODE"] = os.environ.get("TEACHER_PASSCODE", "tnnhsnyca1986@@")
+    app.config["ADMIN_PASSWORD"] = os.environ.get("ADMIN_PASSWORD", "aa")
 
     Path(app.instance_path).mkdir(parents=True, exist_ok=True)
     app.config["DB_PATH"] = os.path.join(app.instance_path, "cinema.db")
@@ -344,53 +343,9 @@ def create_app():
             if not session.get("agreed_privacy"):
                 return redirect(url_for("privacy_agree", rtype=rtype))
 
-    def teacher_required(view_func):
-        @wraps(view_func)
-        def wrapped(*args, **kwargs):
-            if not session.get("teacher_authenticated"):
-                flash("교사 인증 후 이용 가능합니다.", "error")
-                next_url = request.full_path if request.query_string else request.path
-                return redirect(url_for("teacher_login", next=next_url))
-            return view_func(*args, **kwargs)
-        return wrapped
-
     @app.route("/healthz")
     def healthz():
         return "ok", 200
-
-    @app.route("/teacher/login", methods=["GET","POST"])
-    def teacher_login():
-        attempts = session.get("teacher_attempts", 0)
-        lock_until = session.get("teacher_lock_until")
-        now = int(time.time())
-        if lock_until and now < lock_until:
-            flash(f"잠시 후 다시 시도하세요. 남은 시간: {lock_until-now}초", "error")
-            return render_template("teacher_login.html")
-        if request.method == "POST":
-            code = (request.form.get("code") or "").strip()
-            if code == current_app.config["TEACHER_PASSCODE"]:
-                session["teacher_authenticated"] = True
-                session.pop("teacher_attempts", None); session.pop("teacher_lock_until", None)
-                flash("교사 인증이 완료되었습니다.", "ok")
-                return redirect(request.args.get("next") or url_for("home"))
-            attempts += 1; session["teacher_attempts"] = attempts
-            if attempts >= 5:
-                session["teacher_lock_until"] = now + 300
-                flash("틀린 입력이 많아 5분간 잠금되었습니다.", "error")
-            else:
-                flash(f"인증 코드가 올바르지 않습니다. 남은 시도: {5-attempts}회", "error")
-        return render_template("teacher_login.html")
-
-    @app.route("/teacher/logout")
-    def teacher_logout():
-        session.pop("teacher_authenticated", None)
-        flash("교사 인증이 해제되었습니다.", "info")
-        return redirect(url_for("home"))
-
-    @app.route("/teacher/booking", endpoint="teacher_booking")
-    @teacher_required
-    def teacher_booking():
-        return redirect(url_for("booking_mode"))
 
     @app.route("/", methods=["GET"], endpoint="home")
     def home():
@@ -808,38 +763,6 @@ def create_app():
             html.append(f"<tr><td>{r}</td><td>{e}</td><td>{m}</td></tr>")
         html.append("</table>")
         return "".join(html)
-
-    @app.route("/_selftest")
-    def _selftest():
-        from markupsafe import escape; import traceback
-        results=[]
-        def check(title,fn):
-            try: fn(); results.append((title,True,"OK"))
-            except Exception as e:
-                tb=traceback.format_exc(); results.append((title,False,f"{e}\n{tb[:800]}"))
-        with app.test_request_context("/"):
-            def _urls():
-                _=url_for("home"); _=url_for("booking_mode")
-                _=url_for("notices"); _=url_for("about"); _=url_for("admin_login")
-            check("url_for endpoints", _urls)
-            def _render_home(): render_template("home.html", movies=load_all_movies())
-            def _render_booking(): render_template("booking.html", movie_id="", movies=load_all_movies())
-            def _render_reserve_normal():
-                ms=load_all_movies(); m=ms[0] if ms else {"id":"unknown","title":"알 수 없는 영화","genre":"-","rating":"-"}
-                render_template("reserve.html", rtype="normal", movie=m, movies=ms, schedule=get_schedule_dates())
-            check("render home.html", _render_home)
-            check("render booking.html", _render_booking)
-            check("render reserve.html(normal)", _render_reserve_normal)
-        rows=[]
-        for title,ok,msg in results:
-            color="#16a34a" if ok else "#dc2626"
-            rows.append(f"<tr><td>{escape(title)}</td><td style='color:{color};font-weight:700'>{'PASS' if ok else 'FAIL'}</td><td><pre style='white-space:pre-wrap'>{escape(msg)}</pre></td></tr>")
-        return f"""<html><head><meta charset='utf-8'><title>selftest</title></head>
-        <body style="font-family:ui-sans-serif,system-ui;max-width:1000px;margin:20px auto">
-          <h2>남녕시네마 자가진단</h2>
-          <p>/admin에서 스케줄 1개 이상 등록 후 예매 테스트를 진행하세요.</p>
-          <table border="1" cellpadding="6" cellspacing="0"><thead><tr><th>테스트</th><th>결과</th><th>메시지</th></tr></thead><tbody>{''.join(rows)}</tbody></table>
-        </body></html>"""
 
     with app.app_context():
         init_db()

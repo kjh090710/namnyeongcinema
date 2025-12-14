@@ -5,13 +5,11 @@
 {% set f = featured or (movies[0] if movies else None) %}
 
 <section class="home-fold container">
-  <!-- 텍스트 영역 -->
   <div class="home-text">
     <p class="h-eyebrow">현재 상영중</p>
     <h1 class="home-title">{{ f.title if f else "상영작 준비중" }}</h1>
 
     
-  <!-- 포스터 영역 -->
   <figure class="home-poster-wrap">
     <img
       class="home-poster"

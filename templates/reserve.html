@@ -12,7 +12,6 @@
 </section>
 
 <form method="post" action="{{ url_for('reserve', rtype=rtype) }}" class="card stack" novalidate>
-  <!-- 공통: 상단 선택(날짜/영화) -->
   <div class="stack">
     <label class="field">
       <span class="label">상영 날짜</span>
@@ -37,7 +36,6 @@
     </label>
   </div>
 
-  {# ===================== 일반 예약 ===================== #}
   {% if is_normal %}
   <div class="stack">
     <label class="field">
@@ -51,7 +49,6 @@
     </label>
   </div>
 
-  {# ===================== 단체 예약 ===================== #}
   {% elif is_group %}
   <div class="stack">
     <label class="field">
@@ -64,7 +61,6 @@
       <input type="text" name="student_name" class="input" placeholder="예: 강준환" required>
     </label>
     
-    <!-- 동반자 학번 -->
     <div class="field">
       <label class="label" for="member_ids">동반자 학번</label>
       <textarea class="input" id="member_ids" name="member_ids" rows="4"
@@ -74,7 +70,6 @@
     </label>
   </div>
 
-  {# ===================== 교사 예약 ===================== #}
   {% else %}
   <div class="stack">
     <label class="field">
