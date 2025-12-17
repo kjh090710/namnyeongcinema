@@ -15,7 +15,7 @@ try:
 except Exception:
     APP_TZ = None
 
-TYPE_CODE = {"normal": "1", "group": "2", "teacher": "3"}
+TYPE_CODE = {"normal": "1", "group": "2"}
 
 def now_iso():
     return (datetime.now(APP_TZ) if APP_TZ else datetime.now()).isoformat()
@@ -95,7 +95,7 @@ def get_setting(key, default=None):
 def make_ticket_id(rtype: str, date_str: str, student_id: str | None) -> str:
     """
     규칙: 티켓구분번호(1/2) + YY + MMDD + (student_id; 교사 제외)
-    - rtype: normal/group/teacher
+    - rtype: normal/group
     - date_str: 'YYYY-MM-DD'
     - student_id: 학번
     """
@@ -111,7 +111,7 @@ def make_ticket_id(rtype: str, date_str: str, student_id: str | None) -> str:
         dd = (parts[2] if len(parts) > 2 else "00").zfill(2)
         mmdd = f"{mm}{dd}"
 
-    tail = "" if (rtype == "teacher" or not student_id) else str(student_id)
+    tail = "" if (not student_id) else str(student_id)
     base = f"{code}{yy}{mmdd}{tail}"
 
     candidate = base
@@ -173,8 +173,6 @@ def init_db():
             seats TEXT,
             group_name TEXT,
             group_size INTEGER,
-            teacher_name TEXT,
-            class_info TEXT,
             student_id TEXT,
             student_name TEXT,
             status TEXT NOT NULL DEFAULT 'pending',
@@ -332,10 +330,6 @@ def create_app():
             if tab not in [t.lower() for t in BOOK_TYPES]:
                 args = request.args.to_dict(flat=True); args["tab"]="normal"
                 return redirect(url_for("tickets", **args))
-        if request.path.startswith("/reserve/teacher"):
-            if not session.get("teacher_authenticated"):
-                next_url = request.full_path if request.query_string else request.path
-                return redirect(url_for("teacher_login", next=next_url))
         if request.endpoint == "reserve" and request.method == "GET":
             rtype = request.view_args.get("rtype") if request.view_args else (request.args.get("rtype") or "normal")
             if not session.get("agreed_rules"):
@@ -484,7 +478,7 @@ def create_app():
                 member_names = ",".join(id_list)
 
             status = "approved" if rtype == "normal" else "pending"
-            t_id = make_ticket_id(rtype, date, student_id if rtype != "teacher" else None)
+            t_id = make_ticket_id(rtype, date, student_id)
 
             with db() as conn:
                 cols = [
