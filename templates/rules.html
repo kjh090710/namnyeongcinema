@@ -1,35 +1,20 @@
 {% extends "base.html" %}
-{% block title %}상영관 규정 확인 · 동의{% endblock %}
+{% block title %}규정 동의 · 남녕시네마{% endblock %}
 {% block content %}
+<section class="stack mt-24">
+  <h1 class="h-title-xxl">운영 규정 안내</h1>
+  <p class="text-muted">예약 진행 전 규정을 확인하고 동의해 주세요.</p>
 
-<section class="container" style="max-width:880px">
-  <h1 class="h-title-xxl">남녕시네마 운영규칙</h1>
-  <p class="text-muted">예매를 진행하기 전에 아래 규정을 읽고 동의해 주세요.</p>
+  <div class="card stack">
+    <pre style="white-space:pre-wrap; margin:0">{{ text }}</pre>
 
-  <div class="card" style="padding:0">
-    <div style="max-height:52vh; overflow:auto; padding:20px">
-      <pre style="white-space:pre-wrap; font-family:inherit; line-height:1.6; margin:0">{{ text }}</pre>
-    </div>
-    <div style="border-top:1px solid var(--border); padding:14px 16px">
-      <form method="post" action="{{ url_for('rules') }}" class="stack">
-        <input type="hidden" name="rtype" value="{{ rtype }}">
-        <label class="checkbox">
-          <input type="checkbox" id="agreeRules" required>
-          <span>위 <b>운영 규정</b>을 모두 읽고 이해했으며, 이에 <b>동의</b>합니다.</span>
-        </label>
-
-        <div class="t-actions">
-          <a class="pill pill-soft" href="{{ url_for('rules_doc', rtype=rtype) }}" target="_blank" rel="noopener">규정 전문 새 창에서 보기</a>
-          <a class="pill pill-soft" href="{{ url_for('rules_download') }}">텍스트로 다운로드</a>
-          <button class="pill pill-dark cta-full" type="submit" name="agree" value="yes">다음 단계 (개인정보 동의)</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <div class="mt-16">
-    <a class="pill pill-soft" href="{{ url_for('booking_mode') }}">← 예매 유형 선택으로 돌아가기</a>
+    <form method="post" class="stack">
+      <input type="hidden" name="rtype" value="{{ rtype }}">
+      <button class="btn btn-primary" type="submit" name="agree" value="yes">동의하고 계속</button>
+      <a class="btn btn-light" href="{{ url_for('booking_mode') }}">취소</a>
+      <a class="btn btn-soft" href="{{ url_for('rules_doc', rtype=rtype) }}">전체 화면으로 보기</a>
+      <a class="btn btn-soft" href="{{ url_for('rules_download') }}">txt 다운로드</a>
+    </form>
   </div>
 </section>
-
 {% endblock %}

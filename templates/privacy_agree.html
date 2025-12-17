@@ -1,39 +1,22 @@
 {% extends "base.html" %}
-{% block title %}개인정보 수집 이용 동의{% endblock %}
+{% block title %}개인정보 동의 · 남녕시네마{% endblock %}
 {% block content %}
+<section class="stack mt-24">
+  <h1 class="h-title-xxl">개인정보 수집·이용 동의</h1>
+  <p class="text-muted">예약을 위해 최소한의 개인정보를 수집합니다.</p>
 
-<section class="container" style="max-width:880px">
-  <h1 class="h-title-xxl">개인정보 수집 이용 동의</h1>
-  <p class="text-muted">예매를 진행하기 전에 아래 동의서를 읽고 동의해 주세요.</p>
+  <div class="card stack">
+    <ul class="stack" style="margin:0; padding-left:18px">
+      <li>수집 항목: 학번/이름(단체: 대표자 학번/이름, 동반자 학번)</li>
+      <li>이용 목적: 예약 확인 및 좌석/인원 관리</li>
+      <li>보관 기간: 행사 종료 후 내부 규정에 따라 파기</li>
+    </ul>
 
-  <div class="card" style="padding:0">
-    <div style="max-height:52vh; overflow:auto; padding:20px">
-      <pre style="white-space:pre-wrap; font-family:inherit; line-height:1.6; margin:0">
-        ⌜개인정보 보호법⌟에 따라 상기 개인정보 수집, 이용에 대한 본인의 적법한 개인정보 제공 동의를 받고자 합니다.
-        1. 개인 정보 수집 이용 목적 : 남녕시네마 예약자 확인
-        2. 개인 정보 수집 항목 : 예약자의 학번, 이름 (교사의 경우 이름, 담당 과목)
-        3. 개인 정보 이용 및 보유 기간 : 해당 영화 상영 이후 자동 폐기
-        4. 동의를 거부할 수 있습니다. 단, 미 동의시 남녕시네마를 예약할 수 없습니다.
-      </pre>
-    </div>
-    <div style="border-top:1px solid var(--border); padding:14px 16px">
-      <form method="post" action="{{ url_for('privacy_agree') }}" class="stack">
-        <input type="hidden" name="rtype" value="{{ rtype }}">
-        <label class="checkbox">
-          <input type="checkbox" id="agreeRules" required>
-          <span>위 <b>개인정보 수집 이용 동의</b>를 모두 읽고 이해했으며, 이에 <b>동의</b>합니다.</span>
-        </label>
-
-        <div class="t-actions">
-          <button class="pill pill-dark cta-full" type="submit" name="agree" value="yes">다음 단계 (예약)</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <div class="mt-16">
-    <a class="pill pill-soft" href="{{ url_for('booking_mode') }}">← 예매 유형 선택으로 돌아가기</a>
+    <form method="post" class="stack">
+      <input type="hidden" name="rtype" value="{{ rtype }}">
+      <button class="btn btn-primary" type="submit" name="agree" value="yes">동의하고 예약 진행</button>
+      <a class="btn btn-light" href="{{ url_for('booking_mode') }}">취소</a>
+    </form>
   </div>
 </section>
-
 {% endblock %}
