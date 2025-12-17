@@ -1,0 +1,270 @@
+:root{
+  --ink:#0f1220; --ink-2:#2a2e43; --muted:#9198a6;
+  --bg:#f3f4f6; --surface:#ffffff; --border:#e5e7eb;
+  --brand:#2b2e3e; --accent:#1e4db7;
+  --radius-lg:24px; --radius:16px; --radius-sm:10px;
+  --shadow:0 6px 20px rgba(0,0,0,.08);
+}
+
+html,body{background:var(--bg);color:var(--ink);font-family:"Pretendard","Noto Sans KR",system-ui}
+*{box-sizing:border-box}
+a{color:inherit;text-decoration:none}
+img{max-width:100%;height:auto;display:block}
+
+.container{width:100%;max-width:1200px;margin:0 auto;padding:0 20px}
+.stack{display:flex;flex-direction:column;gap:16px}
+.center{display:flex;justify-content:center;align-items:center}
+.mt-8{margin-top:8px}.mt-12{margin-top:12px}.mt-16{margin-top:16px}.mt-24{margin-top:24px}.mt-32{margin-top:32px}.mt-40{margin-top:40px}.mt-48{margin-top:48px}
+.mb-16{margin-bottom:16px}.mb-24{margin-bottom:24px}.mb-32{margin-bottom:32px}
+
+.nyca-header{
+  display:flex; align-items:center; justify-content:space-between;
+  gap:16px; padding:16px 20px; background:transparent;
+}
+.nyca-brand{display:flex;gap:12px;align-items:center;font-weight:800;font-size:28px}
+.nyca-brand img{height:34px;width:auto}
+
+.brand{display:flex;align-items:center;justify-content:center;text-decoration:none;padding:0;margin:0}
+.brand-mark{
+  height:200px;           
+  width:auto; object-fit:contain; display:block;
+  transition:transform .3s ease, opacity .3s ease;
+}
+.brand:hover .brand-mark{transform:scale(1.05);opacity:.9}
+@media (max-width:480px){ .brand-mark{height:120px} } 
+
+.nyca-menu-btn{
+  position:relative; width:38px; height:30px;
+  display:flex; flex-direction:column; justify-content:center; align-items:center; gap:6px;
+  background:none; border:none; cursor:pointer; padding:0; transition:transform .3s ease;
+}
+.nyca-menu-btn:hover{ transform:scale(1.05) }
+.nyca-menu-btn span{
+  display:block; width:100%; height:3px; border-radius:2px; background:var(--ink);
+  transition:transform .3s cubic-bezier(.22,.61,.36,1), opacity .2s ease, background .3s ease;
+}
+.nyca-menu-btn.is-open span:nth-child(1){transform:translateY(9px) rotate(45deg)}
+.nyca-menu-btn.is-open span:nth-child(2){opacity:0}
+.nyca-menu-btn.is-open span:nth-child(3){transform:translateY(-9px) rotate(-45deg)}
+@media (prefers-color-scheme: dark){ .nyca-menu-btn span{background:#fff} }
+
+.h-eyebrow{font-weight:900;color:#b7bcc6;font-size:34px}
+.h-title-xxl{font-weight:900;color:#2f3141;font-size:56px;line-height:1.02}
+.h-title-xl{font-weight:900;color:#2f3141;font-size:72px;line-height:1.02}
+.text-muted{color:#9aa3b1}
+.k{color:#616776}
+
+.card{background:var(--surface);border-radius:var(--radius-lg);box-shadow:var(--shadow);padding:32px}
+.card-soft{background:#f8f9fb;border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px}
+.card-no{padding:24px}
+
+.field{display:flex;flex-direction:column;gap:8px}
+.field .label{font-weight:800;color:#2f3141;font-size:15px}
+.help{color:#6b7280;font-size:13px;margin-top:6px}
+.input{width:100%;padding:14px 12px;border:2px solid var(--border);border-radius:var(--radius-sm);font-size:16px;background:#fff}
+.input:focus{outline:none;border-color:var(--accent)}
+.input-underline{border:none;border-bottom:2px solid var(--border);border-radius:0;background:transparent;padding-left:0}
+.checkbox{display:flex;gap:10px;align-items:center;color:#7d8796}
+.input:-webkit-autofill,
+.input:-webkit-autofill:hover,
+.input:-webkit-autofill:focus{
+  -webkit-text-fill-color:#111;
+  -webkit-box-shadow:0 0 0px 1000px #fff inset;
+  box-shadow:0 0 0px 1000px #fff inset;
+  caret-color:#111;
+}
+
+select.input{
+  appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' stroke='%239198a6' stroke-width='2' viewBox='0 0 24 24'%3E<path d='M6 9l6 6 6-6'/></svg>");
+  background-repeat:no-repeat; background-position:right 12px center; background-size:16px; cursor:pointer;
+}
+
+.btn{
+  display:inline-flex; justify-content:center; align-items:center; gap:8px;
+  padding:14px 16px; border-radius:var(--radius); font-weight:800; border:1px solid transparent; cursor:pointer;
+}
+.btn-primary{background:var(--brand);color:#fff}
+.btn-soft{background:#eef0f4}
+.btn-block{width:100%}
+
+.poster{width:100%;height:auto;aspect-ratio:2/3;object-fit:cover;object-position:center;border-radius:12px}
+.poster-frame{border:6px solid #cfd2d7;border-radius:12px;overflow:hidden}
+.ticket-poster{width:100%;max-height:470px;object-fit:cover}
+
+.booking-btn{display:block;width:100%;padding:18px;border-radius:12px;text-align:center;font-weight:900;margin:18px 0}
+.booking-normal{background:var(--brand);color:#fff}
+.booking-gray{background:var(--brand);color:#fff;position:relative}
+.ribbon{position:absolute;right:-10px;top:-12px;background:#e11d48;color:#fff;padding:4px 10px;border-radius:6px;transform:rotate(20deg);font-size:12px}
+
+/* ===== Ticket detail (legacy look, polished) ===== */
+.ticket-hero{
+  position:relative; height:48dvh; min-height:260px; max-height:520px; background:#111; overflow:hidden;
+}
+.ticket-hero img{width:100%;height:100%;object-fit:cover;opacity:.45;filter:saturate(105%)}
+.ticket-hero::after{
+  content:""; position:absolute; inset:0;
+  background:linear-gradient(to bottom, rgba(0,0,0,.45), rgba(0,0,0,.20) 42%, rgba(0,0,0,0));
+  pointer-events:none;
+}
+.ticket-hero .title-wrap{position:absolute;left:20px;bottom:16px;right:20px;color:#fff}
+.ticket-hero .eyebrow{font-size:14px;opacity:.85;margin:0 0 4px}
+.ticket-hero .title{font-size:clamp(32px,9.5vw,56px);font-weight:900;letter-spacing:.5px;margin:0}
+
+.ticket-sheet{
+  position:relative; margin-top:-22px; background:#fff; border-radius:22px 22px 10px 10px;
+  box-shadow:0 10px 30px rgba(0,0,0,.12); padding:18px 16px 24px; max-width:880px; margin-left:auto; margin-right:auto;
+}
+.sheet-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.sheet-head .sheet-title{font-size:clamp(28px,8vw,48px);font-weight:900;margin:0;color:#2b2b34}
+.sheet-head .type-chip{font-weight:800;font-size:14px;padding:6px 10px;border-radius:999px;color:#fff;letter-spacing:.3px}
+.type-red{background:#3a3946}
+.type-gold{background:#a8863a}
+.type-prime{background:linear-gradient(135deg, #88e 0%, #7de 40%, #e6a 100%)}
+
+.kv{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:10px}
+.kv .item b{display:block;font-size:13px;color:#666;margin-bottom:4px}
+.kv .item span{font-size:16px;font-weight:700;color:#222}
+@media (max-width:540px){ .kv{grid-template-columns:1fr} }
+
+.divider{height:1px;background:#eef0f4;margin:16px 0 10px}
+
+/* Ticket actions as “pill cards” */
+.t-actions{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:8px}
+.pill{
+  appearance:none; border:0; width:100%; padding:16px 14px; border-radius:16px;
+  font-weight:800; font-size:16px; text-align:center; cursor:pointer;
+  transition:transform .12s ease, box-shadow .12s ease, background .12s ease;
+}
+.pill-soft{background:#f3f4f6;color:#1f2937;box-shadow:inset 0 -1px 0 rgba(0,0,0,.03), 0 1px 0 rgba(0,0,0,.02)}
+.pill-soft:hover{background:#eef0f4;transform:translateY(-1px)}
+.pill-dark{background:var(--brand);color:#fff;box-shadow:0 6px 16px rgba(0,0,0,.12)}
+.pill-dark:hover{transform:translateY(-1px)}
+.cta-full{grid-column:1 / -1}
+
+/* sticker */
+.sticker{position:absolute;left:16px;top:-22px;transform:rotate(-8deg);background:#ef476f;color:#fff;font-weight:900;padding:8px 14px;border-radius:10px;box-shadow:0 10px 18px rgba(0,0,0,.12)}
+.sticker.gold{background:#d6b35e;color:#1b1b1b}
+.sticker.prime{background:linear-gradient(135deg, #8ef 0%, #baf 50%, #f9a 100%);color:#1b1b1b}
+
+.muted{color:#666}
+.center{text-align:center}
+
+/* ===== Nav sheet & overlay (animated) ===== */
+.nyca-menu{
+  position:fixed; top:64px; right:16px; left:16px;
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius-lg); box-shadow:var(--shadow);
+  z-index:30; overflow:hidden;
+  transform:translateY(-8px) scale(.98); opacity:0; pointer-events:none;
+  transition:transform .24s cubic-bezier(.22,.61,.36,1), opacity .24s ease;
+}
+.nyca-menu.is-open{ transform:translateY(0) scale(1); opacity:1; pointer-events:auto }
+.nyca-menu-list{list-style:none;margin:0;padding:10px}
+.nyca-menu-list li{margin:0}
+.nyca-menu-list a{display:block;padding:14px 16px;border-radius:12px;font-weight:800;color:var(--ink)}
+.nyca-menu-list a:hover{background:#eef1f6}
+
+.nyca-overlay{
+  position:fixed; inset:0; background:rgba(15,18,32,.32); backdrop-filter:blur(2px);
+  z-index:20; opacity:0; pointer-events:none; transition:opacity .24s ease;
+}
+.nyca-overlay.is-open{opacity:1;pointer-events:auto}
+
+/* 접근성: 애니메이션 최소화 */
+@media (prefers-reduced-motion: reduce){
+  .nyca-menu, .nyca-overlay, .nyca-menu-btn span{transition:none}
+}
+
+/* ===== Mobile-first fold fit ===== */
+.section, .container, main{padding-top:8px;padding-bottom:16px}
+.h-hero, .h-title-xxl{
+  font-size:clamp(24px,7.5vw,44px);
+  letter-spacing:.5px; margin:8px 0 12px; line-height:1.1;
+}
+.h-eyebrow{font-size:clamp(14px,3.5vw,18px)}
+.movie-card{max-width:440px;margin:0 auto}
+.movie-poster{
+  width:100%; max-height:min(65vh,620px);
+  object-fit:contain; border-radius:14px; box-shadow:0 6px 24px rgba(0,0,0,.12);
+}
+.fold{min-height:100dvh; display:grid; grid-template-rows:auto 1fr auto; gap:10px}
+.btn-cta{height:54px;font-size:clamp(16px,4.2vw,20px)}
+
+/* ===== Global modal (blurred backdrop) ===== */
+.nyca-modal-overlay{position:fixed;inset:0;display:none;z-index:1200}
+.nyca-modal-overlay.show{display:block}
+.nyca-modal-backdrop{position:absolute;inset:0;background:rgba(20,22,30,.35);backdrop-filter:blur(6px);opacity:0;transition:opacity .18s ease}
+.nyca-modal-overlay.show .nyca-modal-backdrop{opacity:1}
+.nyca-modal{
+  position:relative; z-index:1; width:min(440px,92vw);
+  margin:12vh auto 0; padding:18px 16px 14px; border-radius:16px; background:#111827; color:#fff;
+  box-shadow:0 20px 50px rgba(0,0,0,.25);
+  transform:translateY(12px); opacity:0; transition:all .18s ease;
+}
+.nyca-modal-overlay.show .nyca-modal{transform:translateY(0);opacity:1}
+.nyca-modal h3{margin:0 0 8px;font-size:18px;font-weight:800}
+.nyca-modal p{margin:8px 0 16px;color:#d1d5db;line-height:1.5}
+.nyca-modal .actions{display:flex;gap:10px;justify-content:flex-end}
+.nyca-btn{appearance:none;border:0;border-radius:12px;padding:12px 14px;font-weight:800;cursor:pointer}
+.nyca-btn.gray{background:#e5e7eb;color:#111827}
+.nyca-btn.dark{background:#2f3140;color:#fff}
+body.modal-open{overflow:hidden}
+
+/* ===== Small states ===== */
+.text-muted.ok{color:#1e4db7}
+.text-muted.danger{color:#dc2626}
+.text-muted.muted2{color:#6b7280}
+
+/* ===== Home fold fit (한 화면에 깔끔히) ===== */
+.home-fold{
+  min-height: calc(100dvh - var(--header-h));
+  display: grid;
+  align-items: center;
+  gap: 16px;
+  /* 모바일 1열, 큰 화면 2열 */
+  grid-template-columns: 1fr;
+  padding-block: 8px 16px;
+}
+@media (min-width: 900px){
+  .home-fold{ grid-template-columns: 1.1fr 0.9fr; }
+}
+
+/* 텍스트 묶음 */
+.home-text{ display: grid; gap: 10px; align-content: start; }
+.home-text2{ display: grid; gap: 0px; align-content: start; }
+.home-text2 p {
+  margin: 0;
+}
+.home-title{
+  font-weight: 900;
+  color: #2f3141;
+  font-size: clamp(32px, 6.5vw, 56px);
+  line-height: 1.05;
+  margin: 0 0 6px;
+}
+.home-actions{
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+.home-actions .btn-cta{
+  display:flex; align-items:center; justify-content:center;
+  height: 52px; border-radius: 14px; font-weight: 900;
+}
+
+/* 포스터 박스: 화면 안에서만 보이게 */
+.home-poster-wrap{
+  margin: 0; padding: 0;
+  display: grid; place-items: center;
+}
+.home-poster{
+  width: min(92vw, 520px);
+  max-height: min(58vh, 720px); /* 핵심: 한 화면에 맞춤 */
+  aspect-ratio: 2/3;
+  border-radius: 14px;
+  box-shadow: 0 6px 24px rgba(0,0,0,.12);
+}
+
+/* 상단 여백 과다 방지 (헤더와의 간격 축소) */
+main.container{ padding-top: 0px; }

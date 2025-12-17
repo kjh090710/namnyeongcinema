@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}상영관 규정 전문 | 남녕시네마{% endblock %}
+{% block content %}
+<section class="container" style="max-width:880px">
+  <h1 class="h-title-xxl">남녕시네마 운영규칙 (전문)</h1>
+  <p class="text-muted">Nyca Theater Policy</p>
+</section>
+
+<article class="ticket-sheet">
+  <header class="sheet-head">
+    <h2 class="sheet-title">운영규칙 전문</h2>
+    <span class="type-chip type-gold">필독</span>
+  </header>
+
+  <div class="card-soft" style="padding:16px 18px;">
+    <pre style="white-space:pre-wrap; font-family: ui-sans-serif, system-ui, -apple-system, 'Noto Sans KR', 'Pretendard', Arial; line-height:1.65; font-size:15px; color:#1f2937; margin:0;">{{ text }}</pre>
+  </div>
+
+  <div class="t-actions">
+    <button onclick="window.print()" class="pill pill-soft" type="button">인쇄</button>
+    <a class="pill pill-soft" href="{{ url_for('rules_doc', rtype=rtype) }}" target="_blank" rel="noopener">텍스트로 다운로드</a>
+  </div>
+</article>
+{% endblock %}

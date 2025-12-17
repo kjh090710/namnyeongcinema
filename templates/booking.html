@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="stack mt-24">
+  <p class="h-eyebrow">예약진행</p>
+  <h1 class="h-title-xxl">라라랜드</h1>
+
+  <a class="booking-btn booking-gray"
+     href="{{ url_for('rules', rtype='normal') }}">
+     일반예약
+   </a>
+
+  <a class="booking-btn booking-gray"
+     href="{{ url_for('rules', rtype='group') }}">
+     단체예약
+   </a>
+{% endblock %}

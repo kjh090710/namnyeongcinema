@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}규정 편집 | 남녕시네마 관리자{% endblock %}
+{% block content %}
+<section class="ticket-hero" style="height: 30dvh; max-height: 320px;">
+  <img src="{{ url_for('static', filename='images/poster-placeholder.jpg') }}" alt="Rules Edit">
+  <div class="title-wrap">
+    <p class="eyebrow">Admin</p>
+    <h1 class="title">운영규칙 편집</h1>
+  </div>
+</section>
+
+<article class="ticket-sheet">
+  <header class="sheet-head">
+    <h2 class="sheet-title">규정 전문 텍스트</h2>
+    <span class="type-chip type-gold">관리자</span>
+  </header>
+
+  <form method="post" class="stack">
+    <div class="field">
+      <label class="label" for="rules_text">내용(텍스트/마크다운 가능)</label>
+      <textarea id="rules_text" name="rules_text" class="input" rows="18"
+        style="font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Noto Sans KR'; white-space:pre-wrap;">{{ text }}</textarea>
+      <p class="help">줄바꿈/들여쓰기가 그대로 반영됩니다. 저장 후 “규정 전문 보기”에서 확인하세요.</p>
+    </div>
+
+    <div class="actions">
+      <a href="{{ url_for('rules_doc') }}" class="btn btn-soft">규정 전문 보기</a>
+      <button class="btn btn-primary" type="submit">저장</button>
+    </div>
+  </form>
+</article>
+{% endblock %}

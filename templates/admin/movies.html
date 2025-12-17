@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="stack mt-24">
+  <div class="stack mb-16">
+    <p class="h-eyebrow">관리</p>
+    <h1 class="h-title-xxl">🎬 영화 관리</h1>
+    <p class="text-muted">상영작을 추가·삭제할 수 있습니다.</p>
+  </div>
+
+  <form method="post" action="{{ url_for('admin_movies_new') }}" class="card stack" style="gap:12px">
+    <div class="stack">
+      <label class="k" style="font-weight:700">제목</label>
+      <input class="input" name="title" placeholder="예: 인터스텔라">
+    </div>
+    <div class="stack">
+      <label class="k" style="font-weight:700">관람등급</label>
+      <input class="input" name="rating" placeholder="예: 12세 이상 관람가 (기본: ALL)">
+    </div>
+    <div class="stack">
+      <label class="k" style="font-weight:700">장르</label>
+      <input class="input" name="genre" placeholder="예: SF / 드라마 (기본: 기타)">
+    </div>
+    <div class="stack">
+      <label class="k" style="font-weight:700">상영시간(분)</label>
+      <input class="input" name="duration" type="number" placeholder="예: 169 (기본: 90)">
+    </div>
+    <div class="stack">
+      <label class="k" style="font-weight:700">포스터 URL</label>
+      <input class="input" name="poster" placeholder="예: https://... 혹은 /static/images/posters/m002.jpg">
+    </div>
+    <button class="btn btn-primary">영화 추가</button>
+  </form>
+
+  <div class="card">
+    <table class="table" style="width:100%;border-collapse:collapse">
+      <thead>
+        <tr>
+          <th style="text-align:left;padding:10px">ID</th>
+          <th style="text-align:left;padding:10px">제목</th>
+          <th style="text-align:left;padding:10px">등급</th>
+          <th style="text-align:left;padding:10px">장르</th>
+          <th style="text-align:left;padding:10px">상영시간</th>
+          <th style="text-align:left;padding:10px">포스터</th>
+          <th style="text-align:left;padding:10px">작업</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in db_movies %}
+        <tr style="border-top:1px solid var(--border)">
+          <td style="padding:10px">{{ m['id'] }}</td>
+          <td style="padding:10px">{{ m['title'] }}</td>
+          <td style="padding:10px">{{ m['rating'] or '-' }}</td>
+          <td style="padding:10px">{{ m['genre'] or '-' }}</td>
+          <td style="padding:10px">{{ m['duration'] or '-' }}</td>
+          <td style="padding:10px">
+            {% set poster = m['poster'] or '/static/images/posters/default.jpg' %}
+            <img class="poster" src="{{ poster }}" alt="" style="max-width:120px">
+          </td>
+          <td style="padding:10px">
+            <form method="post" action="{{ url_for('admin_movies_delete', mid=m['id']) }}"
+                  onsubmit="return confirm('정말 삭제할까요?')" style="display:inline">
+              <button class="btn btn-soft">삭제</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+</section>
+{% endblock %}

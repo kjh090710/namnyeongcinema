@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1 class="h3">이번 주 영화 예약</h1>
+  {% if movie %}
+    <div class="card movie">
+      {% if movie.poster_path %}
+        <img class="poster" src="{{ '/' + movie.poster_path }}" alt="poster">
+      {% endif %}
+      <div class="movie-info">
+        <div class="title">{{ movie.title }}</div>
+        <div class="date">상영일: {{ movie.show_date }}</div>
+      </div>
+    </div>
+
+    <form class="card form" action="{{ url_for('reserve') }}" method="post">
+      <label>학번 (예: 10202)
+        <input name="student_id" placeholder="학번 5자리" required>
+      </label>
+      <label>이름
+        <input name="student_name" placeholder="이름" required>
+      </label>
+      <button class="btn">예약 완료</button>
+    </form>
+  {% else %}
+    <p>현재 예약 가능한 영화가 없습니다. 잠시 후 다시 확인해주세요.</p>
+  {% endif %}
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}{{ movie.title }} | 남녕시네마{% endblock %}
+{% block content %}
+
+<section class="ticket-hero" style="height: 44dvh; max-height: 480px;">
+  <img src="{{ movie.poster or url_for('static', filename='images/poster-placeholder.jpg') }}" alt="{{ movie.title }}">
+  <div class="title-wrap">
+    <p class="eyebrow">Movie Info</p>
+    <h1 class="title">{{ movie.title }}</h1>
+  </div>
+</section>
+
+<article class="ticket-sheet">
+  <header class="sheet-head">
+    <h2 class="sheet-title">{{ movie.title }}</h2>
+    <span class="type-chip type-red">영화 정보</span>
+  </header>
+
+  <div class="kv" style="margin-top:12px">
+    <div class="item"><b>장르</b><span>뮤지컬 · 로맨스 · 드라마</span></div>
+    <div class="item"><b>등급</b><span>12세 이상 관람가</span></div>
+    <div class="item"><b>상영시간</b><span>128분</span></div>
+    <div class="item"><b>개봉일</b><span>2016년 12월 7일</span></div>
+    <div class="item"><b>감독</b><span>데이미언 셔젤</span></div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="item">
+    <h2 style="margin:0 0 12px">줄거리</h2>
+    <p></p>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="actions" style="margin-top:25px">
+    <a class="pill pill-soft" href="{{ url_for('booking_mode') }}">예매하기</a>
+    <a class="pill pill-soft" href="{{ url_for('index') }}">홈으로</a>
+  </div>
+</article>
+
+{% endblock %}

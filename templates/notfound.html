@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}관리자 · {{ super() }}{% endblock %}
+{% block content %}
+<div class="card pad" style="margin-bottom:12px">
+  <div class="row" style="justify-content:space-between; align-items:center">
+    <div class="row gap">
+      <a class="btn sm" href="{{ url_for('home') }}">홈</a>
+    </div>
+  </div>
+</div>
+<div>
+  {% block admin_content %}{% endblock %}
+</div>
+{% endblock %}
