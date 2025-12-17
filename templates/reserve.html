@@ -28,7 +28,7 @@
       <span class="label">영화 선택</span>
       <select name="movie_id" class="input" required>
         {% for m in movies %}
-          <option value="{{ m.id }}" {% if m.id = movie.id %}selected{% endif %}>
+          <option value="{{ m.id }}" {% if movie and m.id == movie.id %}selected{% endif %}>
             {{ m.title }}
           </option>
         {% endfor %}
