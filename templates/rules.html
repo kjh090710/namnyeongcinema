@@ -8,12 +8,12 @@
   <div class="card stack">
     <pre style="white-space:pre-wrap; margin:0">{{ text }}</pre>
 
-    <form method="post" class="stack">
+    <form method="post" class="t-actions">
       <input type="hidden" name="rtype" value="{{ rtype }}">
-      <button class="btn btn-primary" type="submit" name="agree" value="yes">동의하고 계속</button>
-      <a class="btn btn-light" href="{{ url_for('booking_mode') }}">취소</a>
-      <a class="btn btn-soft" href="{{ url_for('rules_doc', rtype=rtype) }}">전체 화면으로 보기</a>
-      <a class="btn btn-soft" href="{{ url_for('rules_download') }}">txt 다운로드</a>
+      <button class="pill pill-soft" type="submit" name="agree" value="yes">동의하고 계속</button>
+      <a class="pill pill-soft" href="{{ url_for('booking_mode') }}">취소</a>
+      <a class="pill pill-soft" href="{{ url_for('rules_doc', rtype=rtype) }}">전체 화면으로 보기</a>
+      <a class="pill pill-soft" href="{{ url_for('rules_download') }}">txt 다운로드</a>
     </form>
   </div>
 </section>
